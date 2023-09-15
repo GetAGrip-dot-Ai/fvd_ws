@@ -2,7 +2,7 @@
 
 import rospy
 from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
+from cv_bridge import CvBridge, CvBridgeError
 import cv2
 from ultralytics import YOLO
 import os
@@ -14,6 +14,9 @@ from PIL import Image as PILImage
 from shapely import Polygon
 import cv_bridge
 import io
+import rospkg
+from geometry_msgs.msg import Point
+
 
 def publish_plt_image():
     # Create a ROS publisher for the Image message
@@ -27,8 +30,11 @@ def publish_plt_image():
     plt.plot(x, y)
 
     # Convert the Matplotlib image to a NumPy array
-    plt_image_np = np.frombuffer(plt.gcf().canvas.tostring_rgb(), dtype=np.uint8)
-    plt_image_np = plt_image_np.reshape(plt.gcf().canvas.get_width_height()[::-1] + (3,))
+    plt_image_np = np.frombuffer(
+        plt.gcf().canvas.tostring_rgb(), dtype=np.uint8)
+    plt_image_np = plt_image_np.reshape(
+        plt.gcf().canvas.get_width_height()[::-1] + (3,))
+
 
 def draw_all(img, xywh, mask):
     plt.imshow(img)
@@ -65,13 +71,17 @@ def draw_all(img, xywh, mask):
 
     # Return the PIL Image
     return pil_image
+
+
 def draw_bounding_box(confidence, x, y, w, h, color="blue", fill=False):
     # Get the current reference
     ax = plt.gca()
     # plot the bounding box
-    rect = patches.Rectangle((x - w / 2, y - h / 2), w, h, linewidth=2, edgecolor=color, facecolor='none')
+    rect = patches.Rectangle((x - w / 2, y - h / 2), w,
+                             h, linewidth=2, edgecolor=color, facecolor='none')
     # Add the patch to the Axes
     ax.add_patch(rect)
+
 
 def draw_bounding_polygon(confidence, mask, img_shape, color="blue", fill=True):
     mask = mask.xy[0]
@@ -82,71 +92,99 @@ def draw_bounding_polygon(confidence, mask, img_shape, color="blue", fill=True):
     polygon = Polygon(mask)
     plt.plot(*polygon.exterior.xy)
 
+
 class PerceptionNode:
     def __init__(self):
         rospy.init_node('perception_node')
         self.bridge = CvBridge()
 
-        # Define the RealSense image subscriber
-        self.image_subscriber = rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback, queue_size=1)
-        self.image_publisher = rospy.Publisher('/pepper_yolo_results', Image, queue_size=1)
-
         curr_path = os.getcwd()
         print(curr_path)
 
         # Define the YOLO model
-        self.yolo_pepper = YOLO('/home/sridevi/iowa_ws/src/ISU_Demo/weights/pepper_fruit_best_4.pt')
-        self.yolo_peduncle = YOLO('home/sridevi/iowa_ws/src/ISU_Demo/weights/pepper_peduncle_best_4.pt')
+        rospack = rospkg.RosPack()
+        package_name = 'visual_servo'
+        package_path = rospack.get_path(package_name)
+
+        self.yolo_pepper = YOLO(
+            package_path+'/weights/pepper_fruit_best_4.pt')
+        self.yolo_peduncle = YOLO(
+            package_path+'/weights/pepper_peduncle_best_4.pt')
+
+        # Define the RealSense image subscriber
+        self.image_subscriber = rospy.Subscriber(
+            '/camera/color/image_raw', Image, self.image_callback, queue_size=1)
+        self.image_publisher = rospy.Publisher(
+            '/pepper_yolo_results', Image, queue_size=10)
+        self.pepper_center_publisher = rospy.Publisher(
+            '/pepper_center', Point, queue_size=10)
+        self.peduncle_center_publisher = rospy.Publisher(
+            '/peduncle_center', Point, queue_size=10)
+
+        self.pepper_center = None
+        self.peduncle_center = None
 
     def image_callback(self, msg):
         try:
             # Convert ROS Image message to OpenCV image
-            cv_image = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+            cv_image = self.bridge.imgmsg_to_cv2(
+                msg, desired_encoding='passthrough')
             # cv2.imshow("Image window", cv_image)
-            self.run_yolo(cv_image)
+            if cv_image is not None:
+                _ = self.run_yolo(cv_image)
 
-        except Exception as e:
-            rospy.logerr("Error converting Image message: {}".format(e))
+        except CvBridgeError as e:
+            rospy.logerr("Error converting from image message: {}".format(e))
             return
 
         # Run YOLO on the image
-        detected_image = self.run_yolo(cv_image)
-
+        # detected_image = self.run_yolo(cv_image)
 
     def run_yolo(self, image):
         results_pepper = self.yolo_pepper(image)
         results_peduncle = self.yolo_peduncle(image)
-        pil_image = None
-        xywh = None
-        mask= None
+        # pil_image = None
+        # xywh = None
+        # mask = None
         for result in results_pepper:
             boxes = result.boxes  # Boxes object for bbox outputs
-            box=boxes.xyxy[0].numpy()#only take the first bb
 
+            if boxes.xyxy.numpy().size != 0:
+                box = boxes.xyxy[0]  # only take the first bb
+                self.pepper_center = Point()
+                self.pepper_center.x = int((box[0] + box[2]) / 2)
+                self.pepper_center.y = int((box[1] + box[3]) / 2)
+                self.pepper_center_publisher.publish(self.pepper_center)
 
-
+                p1 = (int(box[0]), int(box[1]))
+                p2 = (int(box[2]), int(box[3]))
+                cv2.rectangle(image, p1, p2, (0, 0, 255), 10)
 
         for result in results_peduncle:
             mask = result.masks
             boxes = result.boxes
-            box_peduncle = boxes.xyxy[0].numpy()
-      
-        if box is not []:
-         
-            p1 =(int(box[0]),int(box[1]))
-            p2 = (int(box[2]),int(box[3]))
-            cv2.rectangle(image,p1,p2,(0,0,255),10)
-            image_msg_bb= CvBridge().cv2_to_imgmsg(image,"bgr8")
-            self.image_publisher.publish(image_msg_bb)
+            if boxes.xyxy.numpy().size != 0:
+                box_peduncle = boxes.xyxy[0]
 
-        if box_peduncle is not []:
-            
-            p3 =(int(box_peduncle[0]),int(box_peduncle[1]))
-            p4 = (int(box_peduncle[2]),int(box_peduncle[3]))
-            cv2.rectangle(image,p3,p4,(255,0,0),10)
-     
-        image_msg_bb= CvBridge().cv2_to_imgmsg(image,"bgr8")
-        self.image_publisher.publish(image_msg_bb)
+                self.peduncle_center = Point()
+                self.peduncle_center.x = int((box[0] + box[2]) / 2)
+                self.peduncle_center.y = int((box[1] + box[3]) / 2)
+                self.peduncle_center_publisher.publish(self.peduncle_center)
+
+                p3 = (int(box_peduncle[0]), int(box_peduncle[1]))
+                p4 = (int(box_peduncle[2]), int(box_peduncle[3]))
+                cv2.rectangle(image, p3, p4, (255, 0, 0), 10)
+
+        try:
+            image_msg_bb = self.bridge.cv2_to_imgmsg(image, "rgb8")
+            self.image_publisher.publish(image_msg_bb)
+            print("published image")
+
+        except CvBridgeError as e:
+            rospy.logerr(
+                "Error converting back to image message: {}".format(e))
+            return
+
         # pil_image = draw_all(image, xywh, mask)
         # np_image = np.array(pil_image)
 
@@ -156,7 +194,9 @@ class PerceptionNode:
         # cv2.imshow('Image', rgb_image)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
+
         return image
+
 
 if __name__ == '__main__':
     try:
@@ -164,3 +204,16 @@ if __name__ == '__main__':
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
+
+'''
+[ERROR] [1694740277.376866]: bad callback: <bound method PerceptionNode.image_callback of <__main__.PerceptionNode object at 0x7f5e68025d60>>
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 750, in _invoke_callback
+    cb(msg)
+  File "/root/catkin_ws/src/ISU_Demo/scripts/perception.py", line 134, in image_callback
+    _ = self.run_yolo(cv_image)
+  File "/root/catkin_ws/src/ISU_Demo/scripts/perception.py", line 170, in run_yolo
+    self.peduncle_center.x = int((box[0] + box[2]) / 2)
+UnboundLocalError: local variable 'box' referenced before assignment
+
+'''
