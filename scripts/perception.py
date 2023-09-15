@@ -114,6 +114,8 @@ class PerceptionNode:
         # Define the RealSense image subscriber
         self.image_subscriber = rospy.Subscriber(
             '/camera/color/image_raw', Image, self.image_callback, queue_size=1)
+        self.depth_subscriber = rospy.Subscriber(
+            '/camera/depth/image_raw', Image, self.depth_callback, queue_size=1)
         self.image_publisher = rospy.Publisher(
             '/pepper_yolo_results', Image, queue_size=10)
         self.pepper_center_publisher = rospy.Publisher(
@@ -165,6 +167,7 @@ class PerceptionNode:
             boxes = result.boxes
             if boxes.xyxy.numpy().size != 0:
                 box_peduncle = boxes.xyxy[0]
+                box = boxes.xyxy[0]  # only take the first bb
 
                 self.peduncle_center = Point()
                 self.peduncle_center.x = int((box[0] + box[2]) / 2)
@@ -197,6 +200,16 @@ class PerceptionNode:
 
         return image
 
+    def depth_callback(self, msg):
+        try:
+            # Convert ROS image message to OpenCV image
+            self.depth_image = self.bridge.imgmsg_to_cv2(
+                msg, desired_encoding='passthrough')
+
+        except CvBridgeError as e:
+            rospy.logerr(
+                "Error converting from depth image message: {}".format(e))
+
 
 if __name__ == '__main__':
     try:
@@ -204,16 +217,3 @@ if __name__ == '__main__':
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
-
-'''
-[ERROR] [1694740277.376866]: bad callback: <bound method PerceptionNode.image_callback of <__main__.PerceptionNode object at 0x7f5e68025d60>>
-Traceback (most recent call last):
-  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 750, in _invoke_callback
-    cb(msg)
-  File "/root/catkin_ws/src/ISU_Demo/scripts/perception.py", line 134, in image_callback
-    _ = self.run_yolo(cv_image)
-  File "/root/catkin_ws/src/ISU_Demo/scripts/perception.py", line 170, in run_yolo
-    self.peduncle_center.x = int((box[0] + box[2]) / 2)
-UnboundLocalError: local variable 'box' referenced before assignment
-
-'''

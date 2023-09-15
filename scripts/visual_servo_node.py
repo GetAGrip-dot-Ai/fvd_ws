@@ -11,8 +11,8 @@ class VisualServoingNode:
         self.rate = rospy.Rate(30)
 
         # RealSense image dimensions
-        self.image_width = 640
-        self.image_height = 480
+        self.image_width = 640.0
+        self.image_height = 480.0
 
         # Set target x and y pixels (numpy coordinate system)
         self.target_x = self.image_height/2
@@ -23,12 +23,27 @@ class VisualServoingNode:
         self.k_y = 1
         self.k_z = 0.5
 
+        # pepper center and peduncle center
+        # self.pepper_center = [0, 0, 0]
+        # self.peduncle_center = [0, 0, 0]
+
         # Subscribe to perception poi message
         self.perception_sub = rospy.Subscriber(
-            '/poi', Point, self.perception_callback)
+            '/peduncle_center', Point, self.perception_callback)
+
+        # self.pepper_center_sub = rospy.Subscriber(
+        #     '/pepper_center', Point, self.pepper_center_callback)
+        # self.peduncle_center_sub = rospy.Subscriber(
+        #     '/peduncle_center', Point, self.peduncle_center_callback)
 
         # Publish a command velocity
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
+
+    def pepper_center_callback(self, data):
+        self.pepper_center = [data.x, data.y, data.z]
+
+    def peduncle_center_callback(self, data):
+        self.peduncle_center = [data.x, data.y, data.z]
 
     def perception_callback(self, data):
         self.actual_x = data.x  # In pixels
@@ -41,8 +56,8 @@ class VisualServoingNode:
         print(target_error_x, target_error_y)
 
         # Normalize errors
-        target_error_x = float(target_error_x/self.image_height)
-        target_error_y = float(target_error_y/self.image_width)
+        target_error_x = target_error_x/self.image_height
+        target_error_y = target_error_y/self.image_width
 
         # Visual servoing control law (velocities set according to RealSense frame)
         vel_cmd = Twist()
