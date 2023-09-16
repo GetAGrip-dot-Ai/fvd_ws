@@ -112,19 +112,20 @@ class PerceptionNode:
             package_path+'/weights/pepper_peduncle_best_4.pt')
 
         # Define the RealSense image subscriber
+        self.depth_subscriber = rospy.Subscriber(
+            '/camera/depth/image_rect_raw', Image, self.depth_callback, queue_size=1)
         self.image_subscriber = rospy.Subscriber(
             '/camera/color/image_raw', Image, self.image_callback, queue_size=1)
-        self.depth_subscriber = rospy.Subscriber(
-            '/camera/depth/image_raw', Image, self.depth_callback, queue_size=1)
         self.image_publisher = rospy.Publisher(
-            '/pepper_yolo_results', Image, queue_size=10)
+            '/pepper_yolo_results', Image, queue_size=1)
         self.pepper_center_publisher = rospy.Publisher(
-            '/pepper_center', Point, queue_size=10)
+            '/pepper_center', Point, queue_size=1)
         self.peduncle_center_publisher = rospy.Publisher(
-            '/peduncle_center', Point, queue_size=10)
+            '/peduncle_center', Point, queue_size=1)
 
         self.pepper_center = None
         self.peduncle_center = None
+        self.depth_image = None
 
     def image_callback(self, msg):
         try:
@@ -154,8 +155,16 @@ class PerceptionNode:
             if boxes.xyxy.numpy().size != 0:
                 box = boxes.xyxy[0]  # only take the first bb
                 self.pepper_center = Point()
+
+                # These are in RealSense coordinate system
                 self.pepper_center.x = int((box[0] + box[2]) / 2)
                 self.pepper_center.y = int((box[1] + box[3]) / 2)
+
+                # Depth image is a numpy array so switch coordinates
+                # Depth is converted from mm to m
+                self.pepper_center.z = 0.001*self.depth_image[self.pepper_center.y,
+                                                              self.pepper_center.x]
+
                 self.pepper_center_publisher.publish(self.pepper_center)
 
                 p1 = (int(box[0]), int(box[1]))
@@ -170,8 +179,16 @@ class PerceptionNode:
                 box = boxes.xyxy[0]  # only take the first bb
 
                 self.peduncle_center = Point()
+
+                # These are in RealSense coordinate system
                 self.peduncle_center.x = int((box[0] + box[2]) / 2)
                 self.peduncle_center.y = int((box[1] + box[3]) / 2)
+
+                # Depth image is a numpy array so switch coordinates
+                # Depth is converted from mm to m
+                self.peduncle_center.z = 0.001*self.depth_image[self.peduncle_center.y,
+                                                                self.peduncle_center.x]
+
                 self.peduncle_center_publisher.publish(self.peduncle_center)
 
                 p3 = (int(box_peduncle[0]), int(box_peduncle[1]))
