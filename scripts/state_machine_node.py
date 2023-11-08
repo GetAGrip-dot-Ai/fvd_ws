@@ -18,13 +18,12 @@ visual servo: 2
 return to init: 3
 
 --Autonomous--
-initialize: 4
-visual servo: 5
-cartesian move: 6
-harvest: 7
-move to basket: 8
-
-
+move to init: 4
+multiframe: 5
+move to pregrasp: 6
+move to poi: 7
+harvest: 8
+move to basket: 9
 ERROR: 10
 
 """
@@ -140,22 +139,25 @@ class StateMachineNode:
         # move to init pose
         elif self.state == 4 and self.plan_executed == 4 and not self.manipulator_moving:
             self.state = 5
-    
-        # auto visual servo
-        # TODO: Add perception end condition verification
+
+        # multiframe
         elif self.state == 5 and self.plan_executed == 5 and not self.manipulator_moving:
             self.state = 6
-
-        # pregrasp: open ee and cartesian move
+    
+        # move to pregrasp
         elif self.state == 6 and self.plan_executed == 6 and not self.manipulator_moving:
             self.state = 7
 
-        # harvest pepper
+        # move to poi
         elif self.state == 7 and self.plan_executed == 7 and not self.manipulator_moving:
             self.state = 8
 
-        # basket drop
+        # harvest pepper
         elif self.state == 8 and self.plan_executed == 8 and not self.manipulator_moving:
+            self.state = 9
+
+        # basket drop
+        elif self.state == 9 and self.plan_executed == 9 and not self.manipulator_moving:
             # if more pepper seen in pepper detection topic
                 self.state = 4
             # else:

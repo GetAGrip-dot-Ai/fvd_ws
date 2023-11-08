@@ -205,12 +205,12 @@ class PerceptionNode:
                 xywh = result.boxes.xywh[i].cpu().numpy()
                 xywh[0], xywh[1] = int(xywh[1]), int(xywh[0])   # Switch from YOLO axes to NumPy axes
                 
-                if cls == peduncle_number:                                    # it is a pepper
+                if cls == peduncle_number:                                    # it is a peduncle
                     peduncle_detection = PepperPeduncle(self.peduncle_count, xywh=xywh, mask=np.array(mask.cpu()), segment=segment)
                     self.peduncle_detections[self.peduncle_count] = peduncle_detection
                     self.peduncle_count += 1
 
-                else:                                           # it is a peduncle
+                else:                                           # it is a pepper
                     pepper_detection = PepperFruit(self.fruit_count, xywh=xywh, mask=np.array(mask.cpu()), segment=segment)
                     self.fruit_detections[self.fruit_count] = pepper_detection
                     self.fruit_count+= 1
@@ -310,14 +310,14 @@ class PerceptionNode:
         for _, pepper in self.pepper_detections.items(): 
             peduncle = pepper.pepper_peduncle
 
-            if self.state != 5:
+            if self.state != 6: # TODO: update based on move to pregrasp state
                 self.poi.x = peduncle.xyz_base[0]
                 self.poi.y = peduncle.xyz_base[1]
                 self.poi.z = peduncle.xyz_base[2]
 
             break
 
-        self.poi_pub.publish(self.poi)
+        # self.poi_pub.publish(self.poi)
     
 
     def plot_masks(self, image, depth_img):

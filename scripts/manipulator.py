@@ -37,12 +37,9 @@ class Manipulator:
 
     def parseYaml(self, yaml_file, package_path):
         """parse the yaml to get parameters"""
-        # parse data
         data = dict()
         with open(os.path.join(package_path + yaml_file), "r") as file:
             data = yaml.safe_load(file)
-        
-        # save values
         self.pregrasp_offset = data["pregrasp_offset"]
         self.ee_length_offset = data["ee_offset"]
         self.init_pose = data["init_pose"]
@@ -53,19 +50,11 @@ class Manipulator:
         print("Moving to initial pose")
         self.arm.set_position(*self.init_pose, wait=True, speed=25)
 
-    def cartesianMoveX(self,dist): # todo: test out set_servo_cartesian
-        """cartesian move along x"""
-        dist = dist*1000  # convert m to mm
-        current_pos = self.arm.get_position()[1]
-        current_pos[0] += dist # add to x
-        print("Executing cartesian move")
-        self.arm.set_position(*current_pos, wait=True, speed=10)
-
-    def cartesianMoveY(self,dist): # todo: test out set_servo_cartesian
+    def cartesianMove(self,dist,axis): 
         """cartesian move along y"""
         dist = dist*1000  # convert m to mm
         current_pos = self.arm.get_position()[1]
-        current_pos[1] += dist # add to y
+        current_pos[axis] += dist # add to z
         print("Executing cartesian move")
         self.arm.set_position(*current_pos, wait=True, speed=10)
 
@@ -73,12 +62,14 @@ class Manipulator:
         """move to the poi pregrasp pose"""
         x -= self.pregrasp_offset
         x -= self.ee_length_offset
-        # just using the orientation values from the init position
-        self.arm.set_position(x * 1000 ,y * 1000 ,z * 1000 ,*self.orientation[3:], wait=True, speed=25)
+        self.arm.set_position(x * 1000 ,y * 1000 ,z * 1000 ,*self.orientation, wait=True, speed=25)
+
+    def moveToPoi(self):
+        self.cartesianMove(self.pregrasp_offset,0) # move forward in x
 
     def moveToBasket(self):
         """move to basket pose for pepper drop off"""
-        self.cartesianMoveX(-0.20) # move back 20 cm
+        self.cartesianMove(-0.20,0) # move back 20 cm in x
         print("Moving to basket pose")
         self.arm.load_trajectory('to_basket.traj')
         self.arm.playback_trajectory()
@@ -89,15 +80,25 @@ class Manipulator:
         self.arm.load_trajectory('from_basket.traj')
         self.arm.playback_trajectory()
 
+    def multiframe(self):
+        """scan down the pepper plant"""
+        print("Multiframe: scanning down the plant")
+        self.cartesianMove(0.2,2) # move down 20 cm in z
+
     def test(self):
         print("TESTING")
         print(self.arm.get_position()[1])
-        # pepper drop off and reset
-        # self.moveToBasket()
-        # rospy.sleep(15)
-        # self.moveFromBasket()
-        # rospy.sleep(10)
+
+        # move to init and multiframe
         # self.moveToInit()
+        # self.multiframe()
+
+        # pepper drop off and reset
+        self.moveToBasket()
+        rospy.sleep(10)
+        self.moveFromBasket()
+        rospy.sleep(10)
+        self.moveToInit()
 
         # self.moveToInit()
         return

@@ -34,4 +34,8 @@
   <!-- manipulation node -->
   <node pkg="peter"  name="manipulator" type="manipulator.py"></node>
 
+  <!-- pepper filter node -->
+  <node pkg="peter"  name="pepper_filter_node" type="pepper_filter_node.py"></node>
+
+
 </launch>

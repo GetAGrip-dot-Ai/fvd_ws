@@ -1,8 +1,6 @@
 pregrasp_offset: 0.15
 ee_offset: 0.15
 orientation: [-90, 45, -90]
-# init_pose: [36.388428, 394.092255, 326.804932, -90, 45, -90] # pose used for close up w/ red peppers
 # init_pose: [75.048096, 432.961609, 396.784912, -90, 45, -90] # pose used during testing baslet drop
-init_pose: [-79.132172, 421.766205, 506.757019, -90, 45, -90] # pose used durin rosbag recording
-# basket_pregrasp: [18.380972, -325.475739, 440.345703, 90, -45, 0]
-basket_pregrasp: [1.709647, -293.092255, 484.427765, -90, 45, -180]
+# init_pose: [-79.132172, 421.766205, 506.757019, -90, 45, -90] # pose used durin rosbag recording
+init_pose: [-79.132172, 421.766205, 356.757019, -90, 45, -90] # higher pose with mf now

@@ -36,7 +36,7 @@ class PlannerNode:
         # subscribers
         self.state_sub = rospy.Subscriber('/state', Int16, self.state_callback, queue_size=1) # state message
         self.joystick_sub = rospy.Subscriber('/joy', Joy, self.joystick_callback, queue_size=1) # joystick message        
-        self.poi_sub = rospy.Subscriber('/poi', Point, self.poi_callback, queue_size=1) # visual servoing messages
+        self.poi_sub = rospy.Subscriber('/poi', Point, self.poi_callback, queue_size=1)
 
         # publishers
         # todo: can remove the joy relay topic and just use joy now that we dont have "fake joy" anymore
@@ -124,55 +124,66 @@ class PlannerNode:
             except:
                 rospy.loginfo("ERROR: UNABLE TO INITIALIZE AUTONOMOUS PROCEDURE")
                 self.state_pub.publish(10)
-            
-        # move to pre-grasp
+    
+        # multiframe
         elif self.state == 5:
             try:
-                print("in state 5")
                 xarm = Manipulator()
-                # todo: need to change this to get the matched pepper poi
+                xarm.multiframe()
+                rospy.sleep(.1)
+                xarm.disconnect()
+                rospy.sleep(.1)
+                rospy.loginfo("Plan Execution: Multiframe Complete")
+                self.planner_state_pub.publish(5)
+            except:
+                rospy.loginfo("ERROR: UNABLE TO MULTIFRAME")
+                self.state_pub.publish(10)
+            
+        # move to pre-grasp
+        elif self.state == 6:
+            try:
+                xarm = Manipulator()
                 if self.poi:
                     rospy.logwarn(f"POI!!!!!! >>  {self.poi}")
                     self.perception_communication_pub.publish(True)
                     xarm.moveToPregrasp(self.poi.x, self.poi.y, self.poi.z)
-
                 else:
                     rospy.logwarn("NO POI DETCTED YET!!!")
                 rospy.sleep(.1)
                 xarm.disconnect()
                 rospy.sleep(.1)
-                self.planner_state_pub.publish(5)
+                self.planner_state_pub.publish(6)
             except Exception as e:
                 rospy.logwarn(f"ERROR: UNABLE TO MOVE TO PREGRASP POSITION {e}")
                 self.state_pub.publish(10)
 
         # move to poi: open ee and place ee at cut/grip position
-        elif self.state == 6:
+        elif self.state == 7:
             try:
                 xarm = Manipulator()
-                xarm.cartesianMoveX(0.15)
+                xarm.moveToPoi()
                 rospy.sleep(.1)
                 xarm.disconnect()
                 rospy.sleep(.1)
                 rospy.loginfo("Plan Execution: Move to POI Complete")
-                self.planner_state_pub.publish(6)
+                self.planner_state_pub.publish(7)
             except:
                 rospy.loginfo("ERROR: UNABLE TO MOVE TO POI")
                 self.state_pub.publish(10)
 
         # harvest pepper
-        elif self.state == 7:
+        elif self.state == 8:
             self.send_to_ee("harvest")
             rospy.sleep(5) #fake harvest
-            self.planner_state_pub.publish(7)
+            self.planner_state_pub.publish(8)
 
         # move to basket and drop then go back to init
-        elif self.state == 8:
+        elif self.state == 9:
             try:
                 rospy.sleep(.1)
                 xarm = Manipulator()
                 xarm.moveToBasket()
-                rospy.sleep(1) # todo: test out disconnecting instead of sleep
+                rospy.sleep(1)
                 xarm.disconnect()
                 rospy.sleep(.1)
                 rospy.loginfo("Plan Execution: Move to Basket Complete")
@@ -184,7 +195,7 @@ class PlannerNode:
                 xarm.disconnect()
                 rospy.sleep(.1)
                 # rospy.sleep(5) # fake drop (delete later)
-                self.planner_state_pub.publish(8)
+                self.planner_state_pub.publish(9)
             except:
                 rospy.loginfo("ERROR: UNABLE TO MOVE TO BASKET")
                 self.state_pub.publish(10)
