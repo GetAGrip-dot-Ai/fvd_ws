@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-from flask import Flask, render_template, Response
+
 import rospy
 from sensor_msgs.msg import Image
+from std_msgs.msg import String
 from cv_bridge import CvBridge
 import cv2
 import threading
@@ -9,13 +10,19 @@ import base64
 from std_msgs.msg import Int16, Bool
 from flask_socketio import SocketIO, emit
 import numpy as np
+
+from flask import Flask, render_template, Response, request, jsonify
 app = Flask(__name__)
 
 socketio = SocketIO(app)
 bridge = CvBridge()
 image_data = None
 lock = threading.Lock()
-state = -1
+system_state = -1
+amiga_state = -1
+
+
+ros_publisher = rospy.Publisher('/user_selected_points', String, queue_size=10)
 
 def image_callback(msg):
     global image_data
@@ -26,16 +33,22 @@ def image_callback(msg):
     except Exception as e:
         rospy.logerr("Could not convert image: %s" % e)
 
-def state_callback(msg):
-    global state
-    state = msg.data
-    # Emit the state to all connected clients
-    # print("state:", state)
-    socketio.emit('state_update', {'state': state})
+
+def system_state_callback(msg):
+    global system_state
+    system_state = msg.data
+    socketio.emit('system_state_update', {'state': system_state})
+
+
+def amiga_state_callback(msg):
+    global amiga_state
+    amiga_state = msg.data
+    socketio.emit('amiga_state_update', {'state': amiga_state})
 
 def ros_thread():
     rospy.Subscriber('/camera/color/image_raw', Image, image_callback)
-    rospy.Subscriber('/state', Int16, state_callback)
+    rospy.Subscriber('/system_state', Int16, system_state_callback)
+    rospy.Subscriber('/amiga_state', Int16, amiga_state_callback)
     rospy.spin()
 
 @app.route('/')
@@ -45,9 +58,30 @@ def index():
 def stream():
     return render_template('front.html')
 
+
+@app.route('/user_select')
+def user_select():
+    image_url = "./static/pink_jelly.png"  # Replace with the path to your image
+    return render_template('select_point.html', image_url=image_url)
+
+
+@app.route('/send_to_ros', methods=['POST'])
+def send_to_ros():
+    if request.method == 'POST':
+        data = request.json  # Parse JSON data from the request
+        x = data['x']
+        y = data['y']
+
+        # Publish the data to the ROS topic
+        ros_publisher.publish(f'({x}, {y})')
+
+        return jsonify({'message': 'Data sent to ROS'})
+
+
 def generate():
     global image_data
     while not rospy.is_shutdown():
+        rospy.sleep(2)
         if image_data is not None:
             frame = image_data
             yield (b'--frame\r\n'

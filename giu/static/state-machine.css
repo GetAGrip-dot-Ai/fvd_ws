@@ -13,17 +13,31 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    border-radius: 5%;
+    box-shadow: 0 0 10px rgba(67, 65, 67, 0.7);
+    /* Glow effect shadow */
+    transition: box-shadow 0.3s ease-in-out;
 }
+
 .state-circle.active {
-    background-color: #ff00ff;
+    background-color: rgb(10, 132, 47);
     /* Blinking effect color */
     animation: blinker 1s step-start infinite;
+    box-shadow: 0 0 20px rgba(10, 132, 47, 0.9);
+    /* Enhanced glow for active state */
 }
 
 @keyframes blinker {
+    0% {
+        background-color: rgba(34, 101, 48, 0.3);
+    }
+
     50% {
-        background-color: #fff;
-        /* Default color */
+        background-color: rgba(34, 101, 48, 0.25);
+    }
+
+    100% {
+        background-color: rgba(34, 101, 48, 0.3);
     }
 }
 

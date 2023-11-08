@@ -48,8 +48,8 @@ function createStateCircles(states, containerId, prefix) {
     });
 }
 
-function updateStateMachine(state, prefix) {
-    for (let i = 1; i <= 10; i++) {
+function updateStateMachine(state_len, state, prefix) {
+    for (let i = 0; i <= state_len; i++) {
         const stateCircle = document.getElementById(`${prefix}-state-${i}`);
         stateCircle.classList.remove('active');
     }
@@ -112,16 +112,22 @@ function padZero(num) {
 document.addEventListener('DOMContentLoaded', () => {
     createStateCircles(systemStates, 'system-state-machine', 'system', 'state-machine-container'); // Add 'state-machine-container' class
     createStateCircles(amigaStates, 'amiga-state-machine', 'amiga', 'state-machine-container'); // Add 'state-machine-container' class
-    for (let i = 1; i <= 6; i++) {
+    for (let i = 0; i <= 6; i++) {
         createTimer(i);
     }
 
     const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     // Listen for state update events
-    socket.on('state_update', function (data) {
-        updateStateMachine(data.state, 'system');
+    socket.on('system_state_update', function (data) {
+        updateStateMachine(10, data.state, 'system');
     });
+
+    socket.on('amiga_state_update', function (data) {
+        console.log('Received amiga_state_update:', data.state);
+        updateStateMachine(3, data.state, 'amiga');
+    });
+
 });
 
 // // Simulated ROS topic subscription callback

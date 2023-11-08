@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Your Page Title</title>
+
+</head>
+
+<body>
+    <div id="header-container"></div>
+
+    <!-- Content -->
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h3>System State Machine</h3>
+                <div id="system-state-machine">
+                    <!-- System State Machine will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h3>Amiga State Machine</h3>
+                <div id="amiga-state-machine">
+                    <!-- Amiga State Machine will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h3>Timers</h3>
+                <div id="timers">
+                    <!-- Timers will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and other dependencies here -->
+    <!-- <script src="..."></script> -->
+
+    <script>
+        // Load the header and navigation bar dynamically
+        const headerContainer = document.getElementById("header-container");
+        fetch("header.html")
+            .then(response => response.text())
+            .then(data => {
+                headerContainer.innerHTML = data;
+            });
+    </script>
+</body>
+
+</html>
