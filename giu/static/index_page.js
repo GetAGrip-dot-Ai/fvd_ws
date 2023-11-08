@@ -129,17 +129,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
-
-// // Simulated ROS topic subscription callback
-// // Replace with actual WebSocket or ROS topic callback to set state
-// function simulateRosCallback() {
-//     const systemState = Math.floor(Math.random() * 8) + 1; // Random state between 1 and 8
-//     const amigaState = Math.floor(Math.random() * 4) + 1;  // Random state between 1 and 4
-//     updateStateMachine(systemState, 'system');
-//     updateStateMachine(amigaState, 'amiga');
-// }
-
-// // Simulate ROS topic update every 5 seconds
-// setInterval(simulateRosCallback, 5000);
-// Initialize a Socket.IO connection
-

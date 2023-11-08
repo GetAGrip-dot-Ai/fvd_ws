@@ -2,27 +2,33 @@
 
 import rospy
 from sensor_msgs.msg import Image
-from std_msgs.msg import String
+from std_msgs.msg import String, Int16, Bool
+
 from cv_bridge import CvBridge
 import cv2
-import threading
-import base64
-from std_msgs.msg import Int16, Bool
-from flask_socketio import SocketIO, emit
 import numpy as np
 
+import threading
+import base64
+
 from flask import Flask, render_template, Response, request, jsonify
+from flask_socketio import SocketIO, emit
+
+
 app = Flask(__name__)
 
 socketio = SocketIO(app)
 bridge = CvBridge()
-image_data = None
 lock = threading.Lock()
+
+image_data = None
+
 system_state = -1
 amiga_state = -1
 
 
 ros_publisher = rospy.Publisher('/user_selected_points', String, queue_size=10)
+
 
 def image_callback(msg):
     global image_data
@@ -45,24 +51,34 @@ def amiga_state_callback(msg):
     amiga_state = msg.data
     socketio.emit('amiga_state_update', {'state': amiga_state})
 
+
 def ros_thread():
     rospy.Subscriber('/camera/color/image_raw', Image, image_callback)
     rospy.Subscriber('/system_state', Int16, system_state_callback)
     rospy.Subscriber('/amiga_state', Int16, amiga_state_callback)
     rospy.spin()
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
 @app.route('/stream')
 def stream():
-    return render_template('front.html')
+    return render_template('image_stream.html')
 
 
 @app.route('/user_select')
 def user_select():
     image_url = "./static/pink_jelly.png"  # Replace with the path to your image
-    return render_template('select_point.html', image_url=image_url)
+    return render_template('user_select.html', image_url=image_url)
+
+
+@app.route('/video_feed')
+def video_feed():
+    return Response(generate(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.route('/send_to_ros', methods=['POST'])
@@ -81,7 +97,7 @@ def send_to_ros():
 def generate():
     global image_data
     while not rospy.is_shutdown():
-        rospy.sleep(2)
+        rospy.sleep(1)  # added because port could not handle too much data
         if image_data is not None:
             frame = image_data
             yield (b'--frame\r\n'
@@ -94,13 +110,9 @@ def generate():
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
 
-@app.route('/video_feed')
-def video_feed():
-    return Response(generate(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
-    rospy.init_node('image_listener', anonymous=True, disable_signals=True)
+    rospy.init_node('peter_gui', anonymous=True, disable_signals=True)
     t = threading.Thread(target=ros_thread)
     t.daemon = True
     t.start()
