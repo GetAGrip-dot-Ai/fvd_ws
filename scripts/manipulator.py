@@ -52,8 +52,8 @@ class Manipulator:
         print("Moving to initial pose")
         self.arm.set_position(*self.init_pose, wait=True, speed=25)
 
-    def cartesianMove(self,dist,axis): 
-        """cartesian move along y"""
+    def cartesianMove(self,dist,axis):
+        """cartesian move along specified axis"""
         dist = dist*1000  # convert m to mm
         current_pos = self.arm.get_position()[1]
         current_pos[axis] += dist # add dist to specified axis
@@ -104,18 +104,18 @@ class Manipulator:
         self.cartesianMove(-0.15,0) # move back 15 cm
         print("Moving to basket pose")
         self.arm.load_trajectory('to_basket.traj')
-        self.arm.playback_trajectory()
+        self.arm.playback_trajectory(wait=True)
 
     def moveFromBasket(self):
         """move away from basket pose"""
         print("Moving from basket pose")
         self.arm.load_trajectory('from_basket.traj')
-        self.arm.playback_trajectory()
+        self.arm.playback_trajectory(wait=True)
 
     def multiframe(self):
-        """scan down the pepper plant"""
-        print("Multiframe: scanning down the plant")
-        self.cartesianMove(0.2,2) # move down 20 cm in z
+        """scan the pepper plant"""
+        self.arm.load_trajectory('multiframe.traj')
+        self.arm.playback_trajectory(wait=True)
     
     def disconnect(self):
         """disconnect from xarm"""
@@ -126,7 +126,6 @@ class Manipulator:
         current_pose = self.arm.get_position()[1]
         # move to init
         # self.moveToInit()
-
         # pepper drop off and reset
         # self.moveToBasket()
         # rospy.sleep(10)
