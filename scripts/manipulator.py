@@ -25,7 +25,7 @@ class Manipulator:
         self.orientation = None
         self.to_basket_points = None
         self.from_basket_points = None
-        self.encore = False#rospy.get_param('/encore')
+        self.encore = rospy.get_param('/encore')
         self.ip = rospy.get_param('/xarm_robot_ip')
         arm_yaml = rospy.get_param('/arm_yaml')
         rospack = rospkg.RosPack()
