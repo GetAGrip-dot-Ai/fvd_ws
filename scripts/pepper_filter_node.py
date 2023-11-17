@@ -25,6 +25,10 @@ package_path = rospack.get_path(package_name)
 TIME_SINCE_BIRTH_METRIC = 100 # [s]
 OBSERVATIONS_METRIC = 20 # unitless
 
+# OBSERVATIONS THRESHOLD
+# the amount of detections you need to publish a POI
+OBSERVATIONS_THRESHOLD = 1
+
 # if the cluster hasn't been seen in a while get rid of it
 TIME_SINCE_LAST_OB_METRIC = 10
 
@@ -81,7 +85,7 @@ class PepperFilterNode:
                 # if it does  kalman filter it
                 min_ind, min_dist = min(dists, key=lambda d: d[1])
 
-                rospy.logwarn(len(self.clusters) ) 
+                # rospy.logwarn(len(self.clusters) ) 
                 
                 if min_dist < NEAREST_NEIGHBOR_METRIC:
                     self.clusters[min_ind].filter(new_cluster.center, new_cluster.quat)               
@@ -129,8 +133,15 @@ class PepperFilterNode:
             poi_pose = self.clusters[0].get_pose_object()
             poi_marker.pose = poi_pose
             
-            self.poi_pub.publish(poi_pose)
+            if self.clusters[0].observations > OBSERVATIONS_THRESHOLD:
+                self.poi_pub.publish(poi_pose)
+            else:
+                poi_marker.color.a = 0.3
+                poi_marker.color.g = 0.8
+                poi_marker.color.r = 0.8
+
             self.poi_viz.publish(poi_marker)
+
             
             self.filtered_pois_array.poses = poses_list
             self.filtered_pois_array.header.stamp = rospy.Time.now()

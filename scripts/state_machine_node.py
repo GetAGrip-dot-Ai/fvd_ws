@@ -109,6 +109,7 @@ class StateMachineNode:
             self.detection = None
         else:
             self.detection = 1
+            # rospy.logwarn("got a detection")
 
     # --------- DECIDE STATE -------------s
     def decide_state(self):

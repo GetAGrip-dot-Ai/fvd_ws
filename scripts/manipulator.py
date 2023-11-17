@@ -25,6 +25,8 @@ class Manipulator:
         self.orientation = None
         self.to_basket_points = None
         self.from_basket_points = None
+        self.cartesian_speed = None
+        self.traj_speed = None
         self.encore = False#rospy.get_param('/encore')
         self.ip = rospy.get_param('/xarm_robot_ip')
         arm_yaml = rospy.get_param('/arm_yaml')
@@ -50,11 +52,14 @@ class Manipulator:
         self.orientation = data["orientation"]
         self.to_basket_points = data["to_basket_points"]
         self.from_basket_points = data["from_basket_points"]
+        self.cartesian_speed = int(data["cartesian_speed"])
+        self.traj_speed = int(data["traj_speed"])
+
 
     def moveToInit(self):
         """move to initial position"""
         print("Moving to initial pose")
-        self.arm.set_position(*self.init_pose, wait=True, speed=30)
+        self.arm.set_position(*self.init_pose, wait=True, speed=self.traj_speed)
 
     def cartesianMove(self,dist,axis): 
         """cartesian move along y"""
@@ -62,7 +67,7 @@ class Manipulator:
         current_pos = self.arm.get_position()[1]
         current_pos[axis] += dist # add dist to specified axis
         print("Executing cartesian move")
-        self.arm.set_position(*current_pos, wait=True, speed=10)
+        self.arm.set_position(*current_pos, wait=True, speed=self.cartesian_speed)
 
     def moveToPregrasp(self,poi_pose):
         """move to pregrasp pose"""
@@ -76,7 +81,7 @@ class Manipulator:
         x -= self.ee_length_offset
 
         # move to new position
-        self.arm.set_position(x * 1000 ,y * 1000 ,z * 1000 ,*self.orientation, wait=True, speed=30)
+        self.arm.set_position(x * 1000 ,y * 1000 ,z * 1000 ,*self.orientation, wait=True, speed=self.traj_speed)
 
         # update roll angle
         if self.encore:
@@ -92,14 +97,14 @@ class Manipulator:
             # calculate the roll angle
             theta = math.atan2(y_comp, z_comp)
             self.orientation[1] += (math.pi - theta) * (180/math.pi)
-            self.arm.set_position(x * 1000 ,y * 1000 ,z * 1000 ,*self.orientation, wait=True, speed=30)
+            self.arm.set_position(x * 1000 ,y * 1000 ,z * 1000 ,*self.orientation, wait=True, speed=self.traj_speed)
 
     def moveToPoi(self):
         self.cartesianMove(self.pregrasp_offset,0) # move forward in x
 
     def orientParallel(self):
         current_pos = self.arm.get_position()[1]
-        self.arm.set_position(*current_pos[0:3] ,*self.orientation, wait=True, speed=30)
+        self.arm.set_position(*current_pos[0:3] ,*self.orientation, wait=True, speed=self.traj_speed)
 
     def moveToBasket(self):
         """move to basket pose for pepper drop off"""
@@ -123,7 +128,7 @@ class Manipulator:
 
     def execute_traj(self, points):
         """execute an interpolated trajectory of waypoints"""
-        self.arm.move_arc_lines(points, speed=50, times=1, wait=True)
+        self.arm.move_arc_lines(points, speed=self.traj_speed, times=1, wait=True)
 
     def disconnect(self):
         """disconnect from xarm"""
@@ -140,9 +145,9 @@ class Manipulator:
         # for traj in self.arm.get_trajectories():
         #     print(traj)
 
-        # self.moveToInit()
+        self.moveToInit()
 
-        self.execute_traj(self.from_basket_points)
+        # self.execute_traj(self.from_basket_points)
         print("done executing trajectory")
 
         return
@@ -152,7 +157,7 @@ if __name__ == '__main__':
 
     try:
         xarm = Manipulator()
-        # xarm.test()
+        xarm.test()
 
         while not rospy.is_shutdown():
             rospy.sleep(0.1)

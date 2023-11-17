@@ -121,7 +121,7 @@ def continuous_publish():
             continue
 
         # Publish the data to the ROS topic
-        ros_publisher.publish(f'({int(x)}, {int(y)})')
+        ros_publisher.publish(f'{int(x)},{int(y)}')
 
         # Wait for a short duration before publishing again
         time.sleep(0.1)  # Adjust the sleep duration as needed
