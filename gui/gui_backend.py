@@ -95,15 +95,9 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/stream')
-def stream():
-    return render_template('image_stream.html')
-
-
 @app.route('/user_select')
 def user_select():
-    image_url = "./static/pink_jelly.png"  # Replace with the path to your image
-    return render_template('user_select.html', image_url=image_url)
+    return render_template('user_select.html')
 
 
 @app.route('/video_feed')
@@ -114,18 +108,16 @@ def video_feed():
 
 # Function to continuously publish data
 def continuous_publish():
+    global current_values
+    publish_count = 0
     while True:
         # Read the latest values
         x, y = current_values['x'], current_values['y']
-        if x == -1 or y == -1:
-            continue
 
         # Publish the data to the ROS topic
         ros_publisher.publish(f'{int(x)},{int(y)}')
-
-        # Wait for a short duration before publishing again
-        time.sleep(0.1)  # Adjust the sleep duration as needed
-
+        publish_count+=1
+    current_values['x'], current_values['y'] = -1, -1
 
 @app.route('/send_to_ros', methods=['POST'])
 def send_to_ros():
@@ -137,20 +129,19 @@ def send_to_ros():
 
         return jsonify({'message': 'Data received'})
 
-
 def generate():
     global image_data
     while not rospy.is_shutdown():
-        rospy.sleep(1)  # added because port could not handle too much data
+        rospy.sleep(1.5)  # added because port could not handle too much data
         if image_data is not None:
             frame = image_data
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         else:
             # If no image, showing pink image
-            pink_image = np.zeros((500, 500, 3), dtype=np.uint8)
-            pink_image[:] = (255, 105, 180)  # RGB for pink
-            ret, jpeg = cv2.imencode('.jpg', pink_image)
+            green_image = np.zeros((500, 500,3), dtype=np.uint8)
+            green_image[:] = (151, 188, 98)  # RGB for pink
+            ret, jpeg = cv2.imencode('.jpg', green_image)
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
 
@@ -160,5 +151,4 @@ if __name__ == '__main__':
     t = threading.Thread(target=ros_thread)
     t.daemon = True
     t.start()
-    # app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
