@@ -8,6 +8,18 @@
     <arg name="enable_pointcloud" value="true" />
   </include>
 
+  <!-- aruco ros -->
+  <arg name="markerSize"      default="0.09"/>    <!-- in m -->
+  <arg name="side"             default="left"/>
+  <node pkg="aruco_ros" type="marker_publisher" name="aruco_marker_publisher">
+      <remap from="/camera_info" to="/camera/color/camera_info" />
+      <remap from="/image" to="/camera/color/image_raw" />
+      <param name="image_is_rectified" value="false"/>
+      <param name="marker_size"        value="$(arg markerSize)"/>
+      <param name="reference_frame"    value="camera_color_optical_frame"/>
+      <param name="camera_frame"       value="camera_color_optical_frame"/>
+  </node>
+
   <!-- tf node-->
   <node pkg="peter"  name="tf_handler_node" type="tf_handler_node.py"></node>
 
@@ -37,5 +49,8 @@
 
   <!-- depth smoothing node -->
   <!-- <node pkg="peter" name="depth_smoother" type="depth_smoothing.py"></node> -->
+
+  <!-- amiga aruco node -->
+  <node pkg="peter" name="amiga_aruco_node" type="amiga_aruco.py"></node>
 
 </launch>
