@@ -123,8 +123,9 @@ class Manipulator:
 
     def multiframe(self):
         """scan down the pepper plant"""
-        print("Multiframe: scanning down the plant")
+        print("Multiframe: scanning the plant")
         self.cartesianMove(-0.2,2) # move up 20 cm in z
+        self.cartesianMove(0.2,2) # move down 20 cm in z
 
     def execute_traj(self, points):
         """execute an interpolated trajectory of waypoints"""
