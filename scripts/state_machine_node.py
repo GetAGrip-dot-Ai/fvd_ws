@@ -105,10 +105,10 @@ class StateMachineNode:
     # --------- POI DETECTION CALLBACK -------------
     def detection_callback(self,msg):
         """Determine if there has been a detection in this cycle of states"""
-        if self.state == 8: # reset self.detection after moving to basket , TODO spin rate???
-            self.detection = None
-        else:
+        if self.state == 3 or self.state == 4: # reset self.detection after moving to basket , TODO spin rate???
             self.detection = 1
+        else:
+            self.detection = None
             # rospy.logwarn("got a detection")
 
     # --------- DECIDE STATE -------------s

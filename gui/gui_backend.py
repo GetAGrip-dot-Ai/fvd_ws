@@ -75,6 +75,8 @@ def system_state_callback(msg):
 
     socketio.emit('system_state_update', {'state': system_state})
 
+    continuous_publish()
+
 
 def amiga_state_callback(msg):
     global amiga_state
@@ -108,11 +110,11 @@ def video_feed():
 
 # Function to continuously publish data
 def continuous_publish():
-    while True:
-        # Read the latest values
-        x, y = current_values['x'], current_values['y']
-        # Publish the data to the ROS topic
-        ros_publisher.publish(f'{int(x)},{int(y)}')
+    # while True:
+    # Read the latest values
+    x, y = current_values['x'], current_values['y']
+    # Publish the data to the ROS topic
+    ros_publisher.publish(f'{int(x)},{int(y)}')
 
 @app.route('/send_to_ros', methods=['POST'])
 def send_to_ros():

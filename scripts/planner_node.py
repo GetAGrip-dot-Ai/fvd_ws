@@ -175,7 +175,6 @@ class PlannerNode:
         # move to basket and drop then go back to init
         elif self.state == 8:
             try:
-                self.poi = None
                 rospy.sleep(.1)
                 xarm = Manipulator()
                 xarm.moveToBasket()
@@ -195,6 +194,7 @@ class PlannerNode:
                 xarm.disconnect()
                 rospy.sleep(.1)
                 self.publish_value = 8
+                self.poi = None
             except:
                 rospy.logwarn("ERROR: UNABLE TO MOVE TO BASKET")
                 self.state_pub.publish(10)
