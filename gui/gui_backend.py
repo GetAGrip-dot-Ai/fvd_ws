@@ -97,8 +97,7 @@ def index():
 
 @app.route('/user_select')
 def user_select():
-    image_url = "./static/pink_jelly.png"  # Replace with the path to your image
-    return render_template('user_select.html', image_url=image_url)
+    return render_template('user_select.html')
 
 
 @app.route('/video_feed')
@@ -111,11 +110,9 @@ def video_feed():
 def continuous_publish():
     global current_values
     publish_count = 0
-    while publish_count < 20:
+    while True:
         # Read the latest values
         x, y = current_values['x'], current_values['y']
-        if x == -1 or y == -1:
-            continue
 
         # Publish the data to the ROS topic
         ros_publisher.publish(f'{int(x)},{int(y)}')
