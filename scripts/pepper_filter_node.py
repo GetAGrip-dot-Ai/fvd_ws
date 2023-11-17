@@ -25,11 +25,20 @@ package_path = rospack.get_path(package_name)
 TIME_SINCE_BIRTH_METRIC = 100 # [s]
 OBSERVATIONS_METRIC = 20 # unitless
 
+# OBSERVATIONS THRESHOLD
+# the amount of detections you need to publish a POI
+OBSERVATIONS_THRESHOLD = 1
+
 # if the cluster hasn't been seen in a while get rid of it
 TIME_SINCE_LAST_OB_METRIC = 10
 
 # nearest neighbtime_since_last_obor metric
 NEAREST_NEIGHBOR_METRIC = 0.03 # [m]
+
+# explicit rejection of peppers happens above this value
+RADIAL_REJECTION = 100.0 # [cm]
+
+RADIAL_REJECTION /= 100.0 # [m]
 
 
 class PepperFilterNode:
@@ -56,44 +65,39 @@ class PepperFilterNode:
     def pep_callback(self, data):
         
         potential_peps = data.poses
-        val = 0
-        # rospy.logwarn(f"len of data {len(potential_peps)}")
+
         for pep in potential_peps:
-            val += 1
+
             if pep.position.x == pep.position.y == pep.position.z == 0:
                 break
             
             new_cluster = Cluster(pep.position, pep.orientation, len(self.clusters) + 1)
             # see if pepper belongs to a pre-existing cluster
             
-            if len(self.clusters)==0:
-                self.clusters.append(new_cluster)
-            # rospy.logwarn(f"@@@self.clusters: {self.clusters}")
-            dists = [(i, c.dist(new_cluster)) for i, c in enumerate(self.clusters)]
-            # rospy.logwarn(f"dist:{dists}")
+            # reject clusters too far from base frame
+            if norm(new_cluster.center) > RADIAL_REJECTION: 
+                break
+            
+            if self.clusters:
+                
+                dists = [(i, new_cluster.dist(c)) for i, c in enumerate(self.clusters)]
 
-            # if it does  kalman filter it
-            min_ind, min_dist = min(dists, key=lambda d: d[1])
-            
-            # rospy.logwarn(f"\n=============={val}==================\n{pep.position}")        
-            # for i, c in enumerate(self.clusters):
-            #    rospy.logwarn( f"Min Dist: \n{round(min_dist, 3)} \nDistance Measurements: \n{round(c.dist(new_cluster), 3)} | \nCluster len\n{len(self.clusters)}\nCenter: \n{np.round(c.center, 3)}")
-            
-            # rospy.logwarn(len(self.clusters) ) 
-            
-            if min_dist < NEAREST_NEIGHBOR_METRIC:
-                self.clusters[min_ind].filter(new_cluster.center, new_cluster.quat)               
-            # if it doesn't, make a new cluster
+                # if it does  kalman filter it
+                min_ind, min_dist = min(dists, key=lambda d: d[1])
+
+                # rospy.logwarn(len(self.clusters) ) 
+                
+                if min_dist < NEAREST_NEIGHBOR_METRIC:
+                    self.clusters[min_ind].filter(new_cluster.center, new_cluster.quat)               
+                # if it doesn't, make a new cluster
+                else:
+                    self.clusters.append(new_cluster)
+                
+                sorting_criteria = lambda p: p.dist_from_ee
+                self.clusters = sorted(self.clusters, key=sorting_criteria)
             else:
                 self.clusters.append(new_cluster)
-            
-            sorting_criteria = lambda p: p.dist_from_ee
-            self.clusters = sorted(self.clusters, key=sorting_criteria)
-            
-            # if self.clusters:
-                # self.visualize()
-                
-            # for c in self.clusters: rospy.loginfo(c)
+        
 
                 
     def run(self):
@@ -129,8 +133,15 @@ class PepperFilterNode:
             poi_pose = self.clusters[0].get_pose_object()
             poi_marker.pose = poi_pose
             
-            self.poi_pub.publish(poi_pose)
+            if self.clusters[0].observations > OBSERVATIONS_THRESHOLD:
+                self.poi_pub.publish(poi_pose)
+            else:
+                poi_marker.color.a = 0.3
+                poi_marker.color.g = 0.8
+                poi_marker.color.r = 0.8
+
             self.poi_viz.publish(poi_marker)
+
             
             self.filtered_pois_array.poses = poses_list
             self.filtered_pois_array.header.stamp = rospy.Time.now()
@@ -224,8 +235,6 @@ class Cluster:
         self.kf.H = np.eye(7)  # Measurement matrix
         self.kf.P *= 1e-4  # Initial uncertainty
         
-        # self.kf.R = 0.01 * np.eye(3)  # Measurement noise #TODO Tune
-        
         # take a bunch of observations from live data
         # Note: This cov was taken from actual cluster covariance
         
@@ -249,10 +258,7 @@ class Cluster:
         
     def dist(self, new_cluster):
         n = norm(self.center - new_cluster.center)
-        # if n < 0.05:
-            # rospy.logwarn(f"!!!! self.center: {self.center}, new_cluster.center: {new_cluster.center}")
-        # else:
-            # rospy.logwarn("different")
+
         return n
     
     def quat_to_vec(self, quat):
@@ -274,7 +280,6 @@ class Cluster:
 
         cross1 = np.cross(np.squeeze(vec), cross_vector)
         cross2 = np.cross(np.squeeze(vec), cross1)
-        # rospy.logwarn(f"{np.squeeze(vec).shape} | {cross1.shape} | {cross2.shape}")
 
         rotation = np.vstack([np.squeeze(vec), cross1, cross2]).T
 
@@ -294,11 +299,6 @@ class Cluster:
              transformation.transform.translation.y, 
              transformation.transform.translation.z])
         
-        # ee_loc = np.array(
-        #     [0, 
-        #      0, 
-        #      0])
-        
         self.dist_from_ee = norm(self.center - ee_loc)
     
     def time_since_birth(self):
@@ -317,17 +317,19 @@ class Cluster:
         self.kf.predict()
         self.kf.update(measurement)
         
-        self.center = self.kf.x[:3]
-        self.quat = self.kf.x[3:]
+        self.center = np.squeeze(self.kf.x[:3])
+        self.quat = np.squeeze(self.kf.x[3:])
         # self.quat = self.vec_to_quat(self.vec)
 
     
     def cleanup(self):
         
         if self.time_since_birth() > TIME_SINCE_BIRTH_METRIC and self.observations < OBSERVATIONS_METRIC:
+            rospy.logwarn("removing cluster")
             return True 
         
         if self.time_since_last_ob() > TIME_SINCE_LAST_OB_METRIC:
+            rospy.logwarn("removing cluster")
             return True
         
         return False
@@ -338,7 +340,6 @@ class Cluster:
         pose = Pose()
         pose.position = Point(*self.center)
         
-        # quat = self.vec_to_quat(self.vec)
         pose.orientation = Quaternion(*self.quat)
         
         return pose

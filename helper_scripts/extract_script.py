@@ -36,7 +36,7 @@ def extract_images_from_bag(bag_file, topic, output_folder):
                 output_folder, f"frame_{count:04d}.png")
 
             # Save the image
-            if count % 2 == 0:
+            if count % 15 == 0:
                 cv2.imwrite(output_filename, cv_image)
                 print(f"Saved: {output_filename}")
 
@@ -46,8 +46,8 @@ def extract_images_from_bag(bag_file, topic, output_folder):
 if __name__ == '__main__':
 
     # sys.argv[1]
-    folder_path = "/root/catkin_ws/rosbags/final_rosbag/"
-    output_folder = "/root/catkin_ws/final_rosbag/"
+    folder_path = "/home/amiga/fvd_ws/src/peter/rosbag/"
+    output_folder = "/home/amiga/fvd_ws/src/peter/rosbag_img/"
     topic = "/camera/color/image_raw"
 
     for bag_file in os.listdir(folder_path):

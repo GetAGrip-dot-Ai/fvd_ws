@@ -47,7 +47,7 @@ arm.set_mode(0)
 arm.set_state(state=0)
 
 
-arm.load_trajectory('multiframe1.traj')
+arm.load_trajectory('from_basket.traj')
 arm.playback_trajectory()
 
 

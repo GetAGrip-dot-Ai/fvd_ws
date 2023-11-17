@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Peter's System Report</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css"
+        integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='state-machine.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='timer-button.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='frame.css') }}">
+    <script src="{{ url_for('static', filename='index_page.js') }}"></script>
+    <script src="https://cdn.socket.io/socket.io-3.1.3.min.js"></script>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+
+    <!-- font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">Peter the Pepper Picker</a>
+            </div>
+            <div id="navbar" class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="/">Home</a></li>
+                    <li><a href="/stream">YOLO results</a></li>
+                    <li><a href="/user_select">User select</a></li>
+                </ul>
+            </div><!--/.nav-collapse -->
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="container mt-5 content-container">
+        <!-- Row for System Manual State Machine and Timers -->
+        <div class="col-md-8">
+            <!-- System Manual State Machine -->
+            <div class="col">
+                <h3>System Manual State Machine</h3>
+                <div id="system-state-manual-machine" class="state-machine-container">
+                    <!-- State 1 -->
+                    <div id="system-state-0" class="state-circle-m state-circle">
+                        <div class="state-title">[0] IDLE/Amiga Teleop</div>
+                    </div>
+                    <div class="arrow-right"></div>
+
+                    <!-- State 2 -->
+                    <div id="system-state-1" class="state-circle-m state-circle">
+                        <div class="state-title">[1] xArm Teleop</div>
+                    </div>
+                    <div class="arrow-right"></div>
+
+                    <!-- State 3 -->
+                    <div id="system-state-2" class="state-circle-m state-circle">
+                        <div class="state-title">[2] Manual: Move to Init</div>
+                    </div>
+
+                    <!-- State 10 -->
+                    <div id="system-state-10" class="state-circle-m state-circle">
+                        <div class="state-title">[10] Error</div>
+                    </div>
+                    <!-- No arrow after the last state -->
+
+                </div>
+            </div>
+            <!-- System Autonomous State Machine -->
+            <div class="col">
+                <h3>System Autonomous State Machine</h3>
+                <div id="system-state-autonomous-machine" class="state-machine-container">
+                    <!-- State 1 -->
+                    <div id="system-state-3" class="state-circle-m state-circle">
+                        <div class="state-title">[3] Move to Init</div>
+                    </div>
+                    <div class="arrow-right"></div>
+
+                    <!-- State 2 -->
+                    <div id="system-state-4" class="state-circle-m state-circle">
+                        <div class="state-title">[4] Multiframe</div>
+                    </div>
+                    <div class="arrow-right"></div>
+
+                    <!-- State 3 -->
+                    <div id="system-state-5" class="state-circle-m state-circle">
+                        <div class="state-title">[5] Move to Pregrasp</div>
+                    </div>
+                    <div class="arrow-right"></div>
+
+                    <div class="vertical-container">
+                        <!-- State 10 -->
+                        <div id="system-state-6" class="state-circle-s state-circle">
+                            <div class="state-title">[6] Move to POI</div>
+                        </div>
+
+                        <!-- State 10 -->
+                        <div id="system-state-7" class="state-circle-s state-circle">
+                            <div class="state-title">[7] Harvest</div>
+                        </div>
+                    </div>
+                    <!-- State 10 -->
+                    <div id="system-state-8" class="state-circle-m state-circle">
+                        <div class="state-title">[8] Move to basket</div>
+                    </div>
+                    <div class="arrow-right"></div>
+
+                    <!-- State 10 -->
+                    <div id="system-state-9" class="state-circle-m state-circle">
+                        <div class="state-title">[9] Release & Reset</div>
+                    </div>
+                    <!-- No arrow after the last state -->
+
+                </div>
+            </div>
+            <!-- Amiga State Machine -->
+            <div class="col">
+                <h3>Amiga State Machine</h3>
+                <div id="amiga-state-machine" class="state-machine-container">
+                    <!-- Plant 1 -->
+                    <div id="amiga-state-0" class="state-circle-l state-circle">
+                        <div class="state-title">Plant 1</div>
+                    </div>
+                    <div class="arrow-right"></div>
+
+                    <!-- Plant 2 -->
+                    <div id="amiga-state-1" class="state-circle-l state-circle">
+                        <div class="state-title">Plant 2</div>
+                    </div>
+                    <div class="arrow-right"></div>
+
+                    <!-- Plant 3 -->
+                    <div id="amiga-state-2" class="state-circle-l state-circle">
+                        <div class="state-title">Plant 3</div>
+                    </div>
+                    <div class="arrow-right"></div>
+
+                    <!-- Plant 4 -->
+                    <div id="amiga-state-3" class="state-circle-l state-circle">
+                        <div class="state-title">Plant 4</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Separate Container or Row for System Autonomous State Machine -->
+        <div class="col-md-4">
+            <!-- Timers -->
+            <div class="col">
+                <h3>Timers</h3>
+                <div id="timers">
+                    <!-- Content -->
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

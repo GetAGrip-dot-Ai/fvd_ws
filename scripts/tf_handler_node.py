@@ -66,8 +66,7 @@ class TfBroadcaster:
         transforms = list()
         for tf_mat in data.values():
             transforms.append(np.array(tf_mat))
-          
-        # apply transforms on to the right of each other  
+                # apply transforms on to the right of each other  
         HTM = np.eye(4)
         for tf in transforms:
             HTM = HTM @ tf   

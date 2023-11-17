@@ -1,0 +1,47 @@
+/* Timer button styles */
+.timer-button {
+    width: 200px;
+    padding: 10px;
+    background-color: #ccc;
+    margin: 10px 0;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+}
+
+.timer-button:hover {
+    background-color: rgb(165, 135, 135)
+}
+
+.timer-button:active {
+    background-color: #7cb388;
+}
+.timer {
+    background-color: #f2f2f2;
+    /* Light gray background */
+    border: 1px solid #ddd;
+    /* Light gray border */
+    border-radius: 5px;
+    /* Rounded corners */
+    padding: 10px;
+    /* Some padding around the text */
+    margin-bottom: 10px;
+    /* Margin at the bottom of each timer */
+    font-family: Arial, sans-serif;
+    /* Font style */
+    color: #333;
+    /* Dark text color */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow for depth */
+    text-align: center;
+    /* Center the text */
+    font-size: 18px;
+    /* Larger font size */
+}
+
+.timer-title {
+    font-weight: bold;
+    /* Bold title */
+    margin-bottom: 5px;
+    /* Space between title and time */
+}

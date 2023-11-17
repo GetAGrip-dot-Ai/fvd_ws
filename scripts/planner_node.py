@@ -9,7 +9,7 @@ from xarm_msgs.msg import RobotMsg
 from manipulator import Manipulator
 from ag_gripper_driver.srv import Pegasus, PegasusResponse
 from visualization_msgs.msg import Marker
-
+from perception_util import make_marker
 
 """
 Listen to state message. 
@@ -26,7 +26,7 @@ class PlannerNode:
         self.joy_state = Joy()
         self.visual_servoing_state = Twist() 
         self.poi = None
-        self.poi_marker = self.make_marker(marker_type=8, frame_id='link_base', r=0, g=1, b=1, a=1, x=0.04, y=0.04)
+        self.poi_marker = make_marker(marker_type=8, frame_id='link_base', r=0, g=1, b=1, a=1, x=0.04, y=0.04)
 
         # subscribers
         self.state_sub = rospy.Subscriber('/state', Int16, self.state_callback, queue_size=1) # state message
@@ -61,17 +61,23 @@ class PlannerNode:
         # rospy.wait_for_service('/gripper_service')
         if command == "open":
             try:
+                rospy.wait_for_service('/gripper_service')
                 Pegasus_action = rospy.ServiceProxy('/gripper_service',Pegasus)
                 Pegasus_action(1)
+                # rospy.logwarn("fake end effector open")
+                # rospy.sleep(3)
             except rospy.ServiceException as e:
-                print("Service call failed: %s"%e)
+                rospy.Logwarn("Service call failed: %s"%e)
 
         elif command == "harvest":
             try:
+                rospy.wait_for_service('/gripper_service')
                 Pegasus_action = rospy.ServiceProxy('/gripper_service',Pegasus)
                 Pegasus_action(0)
+                # rospy.logwarn("fake end effector harvest")
+                # rospy.sleep(3)
             except rospy.ServiceException as e:
-                print("Service call failed: %s"%e)
+                rospy.Logwarn("Service call failed: %s"%e)
         return
         
 
@@ -107,7 +113,7 @@ class PlannerNode:
                 rospy.logwarn("Plan Execution: Initalization Started")
                 self.send_to_ee("open")
                 rospy.logwarn("Plan Execution: Initalization Complete")
-                self.publish_value = self.state
+                self.publish_value = 3
             except:
                 rospy.logwarn("ERROR: UNABLE TO INITIALIZE AUTONOMOUS PROCEDURE")
                 self.state_pub.publish(10)
@@ -122,7 +128,7 @@ class PlannerNode:
                 xarm.disconnect()
                 rospy.sleep(.1)
                 rospy.logwarn("Plan Execution: Multiframe Complete")
-                self.publish_value = self.state
+                self.publish_value = 4
             except:
                 rospy.logwarn("ERROR: UNABLE TO MULTIFRAME")
                 self.state_pub.publish(10)
@@ -136,11 +142,11 @@ class PlannerNode:
                     rospy.logwarn(f"POI!!!!!! >>  {self.poi}")
                     xarm.moveToPregrasp(self.poi)
                 else:
-                    rospy.logwarn("NO POI DETCTED YET!!")
+                    rospy.logwarn("NO POI DETCTED YET!!") #TODO delete?
                 rospy.sleep(.1)
                 xarm.disconnect()
                 rospy.sleep(.1)
-                self.publish_value = self.state
+                self.publish_value = 5
             except Exception as e:
                 rospy.logwarn(f"ERROR: UNABLE TO MOVE TO PREGRASP POSITION {e}")
                 self.state_pub.publish(10)
@@ -155,7 +161,7 @@ class PlannerNode:
                 xarm.disconnect()
                 rospy.sleep(.1)
                 rospy.logwarn("Plan Execution: Move to POI Complete")
-                self.publish_value = self.state
+                self.publish_value = 6
             except:
                 rospy.logwarn("ERROR: UNABLE TO MOVE TO POI")
                 self.state_pub.publish(10)
@@ -164,8 +170,35 @@ class PlannerNode:
         # harvest pepper
         elif self.state == 7:
             self.send_to_ee("harvest")
-            self.publish_value = self.state
+            self.publish_value = 7
             
+        # move to basket and drop then go back to init
+        elif self.state == 8:
+            try:
+                self.poi = None
+                rospy.sleep(.1)
+                xarm = Manipulator()
+                xarm.moveToBasket()
+                rospy.logwarn("Moved to basket")
+                rospy.sleep(13)
+                # while(xarm.arm.get_is_moving()):
+                    # rospy.sleep(.1) 
+                xarm.disconnect()
+                rospy.logwarn("Plan Execution: Move to Basket Complete")
+                self.send_to_ee("open")
+                rospy.sleep(2)
+                xarm = Manipulator()
+                xarm.moveFromBasket()
+                rospy.logwarn("Moved from basket")
+                rospy.sleep(1)
+                rospy.logwarn("Plan Execution: Move from Basket Complete")
+                xarm.disconnect()
+                rospy.sleep(.1)
+                self.publish_value = 8
+            except:
+                rospy.logwarn("ERROR: UNABLE TO MOVE TO BASKET")
+                self.state_pub.publish(10)
+                self.publish_value = 10
 
         # move to basket and drop then go back to init
         elif self.state == 8:
@@ -174,7 +207,8 @@ class PlannerNode:
                 rospy.sleep(.1)
                 xarm = Manipulator()
                 xarm.moveToBasket()
-                rospy.sleep(3)
+                rospy.logwarn("Moved to basket")
+                rospy.sleep(1)
                 xarm.disconnect()
                 rospy.sleep(.1)
                 rospy.logwarn("Plan Execution: Move to Basket Complete")
@@ -182,11 +216,12 @@ class PlannerNode:
                 rospy.sleep(.1)
                 xarm = Manipulator()
                 xarm.moveFromBasket()
-                rospy.sleep(3)
+                rospy.logwarn("Moved from basket")
+                rospy.sleep(1)
                 rospy.logwarn("Plan Execution: Move from Basket Complete")
                 xarm.disconnect()
                 rospy.sleep(.1)
-                self.publish_value = self.state
+                self.publish_value = 8
             except:
                 rospy.logwarn("ERROR: UNABLE TO MOVE TO BASKET")
                 self.state_pub.publish(10)
@@ -199,22 +234,7 @@ class PlannerNode:
         # dispay pregrasp visualization
         if self.poi:
             self.visualizePregrasp(self.poi.position.x, self.poi.position.y, self.poi.position.z)
-
-
-    def make_marker(self, marker_type=8, frame_id='camera_color_optical_frame', r= 1, g=0, b=0, a=1, x=0.05, y=0.05):
-        """make a marker for RViz"""
-        marker = Marker()
-        marker.type = marker_type
-        marker.header.frame_id = frame_id
-        marker.color.r = r
-        marker.color.g = g
-        marker.color.b = b
-        marker.color.a = a
-        marker.scale.x = x
-        marker.scale.y = y
-        return marker
-    
-            
+                      
     def visualizePregrasp(self, x, y, z):
         """publish pregrasp marker"""
         self.poi_marker.points = []

@@ -5,7 +5,7 @@ from std_msgs.msg import Int16
 
 def publish_numbers():
     rospy.init_node('number_publisher', anonymous=True)
-    system_pub = rospy.Publisher('/system_state', Int16, queue_size=10)
+    system_pub = rospy.Publisher('/state', Int16, queue_size=10)
     amiga_pub = rospy.Publisher('/amiga_state', Int16, queue_size=10)
     rate = rospy.Rate(1)  # 0.2 Hz, equivalent to a 5-second delay
 
