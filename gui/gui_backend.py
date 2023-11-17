@@ -108,16 +108,11 @@ def video_feed():
 
 # Function to continuously publish data
 def continuous_publish():
-    global current_values
-    publish_count = 0
     while True:
         # Read the latest values
         x, y = current_values['x'], current_values['y']
-
         # Publish the data to the ROS topic
         ros_publisher.publish(f'{int(x)},{int(y)}')
-        publish_count+=1
-    current_values['x'], current_values['y'] = -1, -1
 
 @app.route('/send_to_ros', methods=['POST'])
 def send_to_ros():

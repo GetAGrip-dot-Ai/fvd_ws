@@ -95,6 +95,7 @@ class PerceptionNode:
         
     def user_input_callback(self, msg):
         self.user_selected_px = [int(msg.data.split(',')[1]), int(msg.data.split(',')[0])]
+        rospy.logwarn(f"User selected pixel: {self.user_selected_px}")
 
     def img_depth_callback(self, img, depth_img):
         
