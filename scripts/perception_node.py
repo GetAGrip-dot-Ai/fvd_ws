@@ -94,10 +94,6 @@ class PerceptionNode:
         self.user_poi_calculated = False
         
     def user_input_callback(self, msg):
-        # the message is a String in the form of (x, y)
-        # need to extract x, y and save it to user_selected_poi
-        
-
         self.user_selected_px = [int(msg.data.split(',')[1]), int(msg.data.split(',')[0])]
 
     def img_depth_callback(self, img, depth_img):
@@ -114,10 +110,8 @@ class PerceptionNode:
                 while time.time() < self.start_time + 5:
                     self.poi_pub.publish(self.user_select_poi_bs)
                     rospy.logwarn(f"{self.user_select_poi_bs.position.x}, {self.user_select_poi_bs.position.y}, {self.user_select_poi_bs.position.z}")
-
-                rospy.logwarn("donme publishing")
+                self.user_selected_px = [-1, -1]
             else:
-                # rospy.logwarn("in normal mode")
                 self.detect_peppers(img, depth_img, transformation)
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
             rospy.logwarn("Error getting the transform")
@@ -132,7 +126,6 @@ class PerceptionNode:
             depth_img = self.bridge.imgmsg_to_cv2(depth, desired_encoding='passthrough')
             preprocessed_image = preprocess_depth_image(depth_img)
             depth_img = fill_depth_gaps(preprocessed_image)
-
 
             if image is not None:
                 self.run_yolo(image)
