@@ -68,8 +68,7 @@ class PerceptionNode:
 
         # Subscribers
         self.camera_info_sub = rospy.Subscriber("/camera/color/camera_info", CameraInfo, self.camera_info_callback)
-        # self.depth_sub = message_filters.Subscriber('/camera/aligned_depth_to_color/image_raw', Image)
-        self.depth_smooth_sub = message_filters.Subscriber('/smooth_depth', Image)
+        self.depth_sub = message_filters.Subscriber('/camera/aligned_depth_to_color/image_raw', Image)
         self.image_sub = message_filters.Subscriber('/camera/color/image_raw', Image)
         
         ts = message_filters.TimeSynchronizer([self.image_sub, self.depth_sub], queue_size=1)
@@ -81,7 +80,6 @@ class PerceptionNode:
         self.fruit_count = 0
         self.peduncle_count = 0
         self.pepper_count = 0
-
         self.fruit_detections = dict()
         self.peduncle_detections = dict()
         self.pepper_detections = dict()
@@ -96,10 +94,6 @@ class PerceptionNode:
         self.user_poi_calculated = False
         
     def user_input_callback(self, msg):
-        # the message is a String in the form of (x, y)
-        # need to extract x, y and save it to user_selected_poi
-        
-
         self.user_selected_px = [int(msg.data.split(',')[1]), int(msg.data.split(',')[0])]
 
     def img_depth_callback(self, img, depth_img):
@@ -116,10 +110,8 @@ class PerceptionNode:
                 while time.time() < self.start_time + 5:
                     self.poi_pub.publish(self.user_select_poi_bs)
                     rospy.logwarn(f"{self.user_select_poi_bs.position.x}, {self.user_select_poi_bs.position.y}, {self.user_select_poi_bs.position.z}")
-
-                rospy.logwarn("donme publishing")
+                self.user_selected_px = [-1, -1]
             else:
-                # rospy.logwarn("in normal mode")
                 self.detect_peppers(img, depth_img, transformation)
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
             rospy.logwarn("Error getting the transform")
@@ -129,7 +121,11 @@ class PerceptionNode:
         try:
             # Convert ROS Image message to OpenCV image
             image = self.bridge.imgmsg_to_cv2(img, desired_encoding='passthrough')
+
+            # smooth the depth image
             depth_img = self.bridge.imgmsg_to_cv2(depth, desired_encoding='passthrough')
+            preprocessed_image = preprocess_depth_image(depth_img)
+            depth_img = fill_depth_gaps(preprocessed_image)
 
             if image is not None:
                 self.run_yolo(image)
@@ -205,8 +201,10 @@ class PerceptionNode:
             # Convert ROS Image message to OpenCV image
             image = self.bridge.imgmsg_to_cv2(
                 img, desired_encoding='passthrough')
-            depth_img = self.bridge.imgmsg_to_cv2(
-                depth, desired_encoding='passthrough')
+            # smooth the depth image
+            depth_img = self.bridge.imgmsg_to_cv2(depth, desired_encoding='passthrough')
+            preprocessed_image = preprocess_depth_image(depth_img)
+            depth_img = fill_depth_gaps(preprocessed_image)
 
             if image is not None:
                 self.user_pose(depth_img, transformation)

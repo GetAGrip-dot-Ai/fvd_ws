@@ -1,6 +1,7 @@
 <launch>
 
   <arg name="on_amiga" default="true"/>
+  <arg name="user_select_mode" default="false"/>
 
   <!-- realsense -->
   <include file="$(find realsense2_camera)/launch/rs_aligned_depth.launch">
@@ -38,7 +39,7 @@
   <node pkg="peter"  name="manipulator" type="manipulator.py"></node>
 
   <!-- pepper filter node -->
-  <node pkg="peter"  name="pepper_filter_node" type="pepper_filter_node.py"></node>
+  <node pkg="peter"  name="pepper_filter_node" type="pepper_filter_node.py" unless="$(arg user_select_mode)"></node>
 
   <!-- static tf from world to link_base -->
   <node pkg="tf2_ros" type="static_transform_publisher" name="rviz_tf" args="0 0 0 1 0 0 0  world link_base" if="$(arg on_amiga)"/>
@@ -47,7 +48,7 @@
   <node pkg="peter"  name="pepper_gui" type="gui_backend.py"></node>
 
   <!-- depth smoothing node -->
-  <node pkg="peter" name="depth_smoother" type="depth_smoothing.py"></node>
+  <!-- <node pkg="peter" name="depth_smoother" type="depth_smoothing.py"></node> -->
 
   <!-- amiga aruco node -->
   <node pkg="peter" name="amiga_aruco_node" type="amiga_aruco.py"></node>
