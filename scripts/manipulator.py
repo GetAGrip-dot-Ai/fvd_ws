@@ -27,6 +27,7 @@ class Manipulator:
         self.from_basket_points = None
         self.cartesian_speed = None
         self.traj_speed = None
+        self.joint_angles = None
         self.encore = False#rospy.get_param('/encore')
         self.ip = rospy.get_param('/xarm_robot_ip')
         arm_yaml = rospy.get_param('/arm_yaml')
@@ -54,6 +55,7 @@ class Manipulator:
         self.from_basket_points = data["from_basket_points"]
         self.cartesian_speed = int(data["cartesian_speed"])
         self.traj_speed = int(data["traj_speed"])
+        self.joint_angles = data["joint_angles"]
 
 
     def moveToInit(self):
@@ -111,6 +113,7 @@ class Manipulator:
         self.cartesianMove(-0.05,0) # move back 5 cm
         self.orientParallel() # straighten orientation if needed
         self.cartesianMove(-0.18,0) # move back 15 cm
+        self.arm.set_servo_angle(angle=self.joint_angles, is_radian=False, wait=True, speed=self.cartesian_speed)
         rospy.logwarn("Moving to basket pose")
         self.execute_traj(self.to_basket_points)
         rospy.logwarn("Done Traj to basket")
@@ -137,6 +140,9 @@ class Manipulator:
 
     def test(self):
         print("TESTING")
+        code, angles = self.arm.get_servo_angle(is_radian=True)
+        print(angles)
+        self.execute_traj(self.to_basket_points)
         # current_pose = self.arm.get_position()[1]
         # print(current_pose)
         # self.moveToBasket()
@@ -146,7 +152,7 @@ class Manipulator:
         # for traj in self.arm.get_trajectories():
         #     print(traj)
 
-        self.moveToInit()
+        # self.moveToInit()
 
         # self.execute_traj(self.from_basket_points)
         print("done executing trajectory")
