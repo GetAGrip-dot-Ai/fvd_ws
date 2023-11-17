@@ -80,7 +80,6 @@ class PerceptionNode:
         self.fruit_count = 0
         self.peduncle_count = 0
         self.pepper_count = 0
-
         self.fruit_detections = dict()
         self.peduncle_detections = dict()
         self.pepper_detections = dict()
@@ -209,8 +208,10 @@ class PerceptionNode:
             # Convert ROS Image message to OpenCV image
             image = self.bridge.imgmsg_to_cv2(
                 img, desired_encoding='passthrough')
-            depth_img = self.bridge.imgmsg_to_cv2(
-                depth, desired_encoding='passthrough')
+            # smooth the depth image
+            depth_img = self.bridge.imgmsg_to_cv2(depth, desired_encoding='passthrough')
+            preprocessed_image = preprocess_depth_image(depth_img)
+            depth_img = fill_depth_gaps(preprocessed_image)
 
             if image is not None:
                 self.user_pose(depth_img, transformation)

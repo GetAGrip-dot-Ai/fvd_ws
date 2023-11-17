@@ -69,14 +69,14 @@ class PepperFilterNode:
         for pep in potential_peps:
 
             if pep.position.x == pep.position.y == pep.position.z == 0:
-                break
+                continue
             
             new_cluster = Cluster(pep.position, pep.orientation, len(self.clusters) + 1)
             # see if pepper belongs to a pre-existing cluster
             
             # reject clusters too far from base frame
             if norm(new_cluster.center) > RADIAL_REJECTION: 
-                break
+                continue
             
             if self.clusters:
                 
