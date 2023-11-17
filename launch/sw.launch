@@ -35,6 +35,6 @@
   <node pkg="peter"  name="pepper_gui" type="gui_backend.py"></node>
 
   <!-- depth smoothing node -->
-  <node pkg="peter" name="depth_smoother" type="depth_smoothing.py"></node>
+  <!-- <node pkg="peter" name="depth_smoother" type="depth_smoothing.py"></node> -->
 
 </launch>

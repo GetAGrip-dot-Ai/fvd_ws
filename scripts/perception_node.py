@@ -68,8 +68,7 @@ class PerceptionNode:
 
         # Subscribers
         self.camera_info_sub = rospy.Subscriber("/camera/color/camera_info", CameraInfo, self.camera_info_callback)
-        # self.depth_sub = message_filters.Subscriber('/camera/aligned_depth_to_color/image_raw', Image)
-        self.depth_smooth_sub = message_filters.Subscriber('/smooth_depth', Image)
+        self.depth_sub = message_filters.Subscriber('/camera/aligned_depth_to_color/image_raw', Image)
         self.image_sub = message_filters.Subscriber('/camera/color/image_raw', Image)
         
         ts = message_filters.TimeSynchronizer([self.image_sub, self.depth_sub], queue_size=1)
@@ -129,7 +128,12 @@ class PerceptionNode:
         try:
             # Convert ROS Image message to OpenCV image
             image = self.bridge.imgmsg_to_cv2(img, desired_encoding='passthrough')
+
+            # smooth the depth image
             depth_img = self.bridge.imgmsg_to_cv2(depth, desired_encoding='passthrough')
+            preprocessed_image = preprocess_depth_image(depth_img)
+            depth_img = fill_depth_gaps(preprocessed_image)
+
 
             if image is not None:
                 self.run_yolo(image)
