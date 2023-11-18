@@ -1,29 +1,4 @@
 // JavaScript for handling the state machines and timers
-function createStateCircles(states, containerId, prefix) {
-    const container = document.getElementById(containerId);
-    container.classList.add('state-machine-container'); // Add a container class
-
-    states.forEach((state, index) => {
-        const stateRectangle = document.createElement('div');
-        stateRectangle.className = 'state-circle';
-        stateRectangle.id = `${prefix}-state-${index}`;
-
-        const stateTitle = document.createElement('div');
-        stateTitle.className = 'state-title';
-        stateTitle.textContent = state.title;
-
-        stateRectangle.appendChild(stateTitle);
-
-        container.appendChild(stateRectangle);
-
-        if (index < states.length - 1) {
-            const arrow = document.createElement('div');
-            arrow.className = 'arrow';
-            container.appendChild(arrow);
-        }
-    });
-}
-
 function updateStateMachine(state_len, state, prefix) {
     for (let i = 0; i <= state_len; i++) {
         const stateCircle = document.getElementById(`${prefix}-state-${i}`);
@@ -34,133 +9,123 @@ function updateStateMachine(state_len, state, prefix) {
         activeState.classList.add('active');
     }
 }
+
 function updateAmigaStateMachine(state) {
     console.log(state);
     const plants = document.querySelectorAll('#plant-bed .plant');
-    plants.forEach(plant => plant.classList.remove('blink-shadow')); // Remove blinking from all plants
-
+    plants.forEach(plant => plant.classList.remove('blink-shadow'));
     if (state >= 0 && state < plants.length) {
-        // Apply blinking to the specific plant
         plants[state].classList.add('blink-shadow');
     }
 }
 
-
 // Timer functionality
-let timers = {
-    timer1: { element: null, interval: null, seconds: 0 },
-};
+let totalSeconds = 0;
+let interval = null;
+
+function startTimer() {
+    if (interval === null) {
+        interval = setInterval(() => {
+            totalSeconds++;
+            updateTimerDisplay();
+        }, 1000);
+    }
+}
+
+function stopTimer() {
+    if (interval !== null) {
+        clearInterval(interval);
+        interval = null;
+    }
+}
+
+function updateTimerDisplay() {
+    const timerElement = document.getElementById('timer-display');
+    timerElement.textContent = `Total Time: ${formatTime(totalSeconds)}`;
+}
+
 function formatTime(seconds) {
-    const minutes = Math.floor((seconds % 3600) / 60);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
     const remainingSeconds = seconds % 60;
-    return `${padZero(minutes)}:${padZero(remainingSeconds)}`;
+    return `${padZero(hours)}:${padZero(remainingMinutes)}:${padZero(remainingSeconds)}`;
 }
 
 function padZero(num) {
     return num.toString().padStart(2, '0');
 }
 
+let harvestTimes = [];
 
-function updateTimerDisplay(timerId) {
-    const timer = timers[timerId];
-    timer.element.textContent = `Pepper Harvest Time: ${formatTime(timer.seconds)}`;
+function recordHarvestTime() {
+    stopTimer();
+    harvestTimes.push(totalSeconds);
+    appendHarvestTimeToList(totalSeconds);
+    calculateAndDisplayAverage();
+    saveData(); // Save data after recording a new harvest time
+    totalSeconds = 0; // Reset the timer for the next harvest
+    startTimer();
+}
+
+function appendHarvestTimeToList(seconds) {
+    const list = document.getElementById('harvest-times-list');
+    const listItem = document.createElement('li');
+    listItem.textContent = `Harvest Time: ${formatTime(seconds)}`;
+    list.appendChild(listItem);
 }
 
 
-function startTimer(timerId) {
-    stopAllTimers(); // Optional: stop all other timers when one starts
-    const timer = timers[timerId];
-    timer.interval = setInterval(() => {
-        timer.seconds++;
-        updateTimerDisplay(timerId);
-    }, 1000);
+function calculateAndDisplayAverage() {
+    const average = harvestTimes.reduce((a, b) => a + b, 0) / harvestTimes.length;
+    const averageElement = document.getElementById('average-time');
+    averageElement.textContent = `Average Time: ${formatTime(Math.round(average))}`;
 }
 
-function stopTimer(timerId) {
-    const timer = timers[timerId];
-    clearInterval(timer.interval);
-    timer.interval = null;
+function saveData() {
+    localStorage.setItem('harvestTimes', JSON.stringify(harvestTimes));
+    localStorage.setItem('totalSeconds', totalSeconds.toString());
 }
 
-function stopAllTimers() {
-    Object.keys(timers).forEach(stopTimer);
-}
-
-function addNewTimer(timerId, pepperId) {
-    // Check if the timer already exists
-    if (!timers[timerId]) {
-        // Create a new timer object
-        timers[timerId] = { element: null, interval: null, seconds: 0 };
-
-        // Create the timer display element
-        const timerElement = document.createElement('div');
-        timerElement.id = `timer-${timerId}`;
-
-        // Add the timer display to the page
-        document.getElementById('timers').appendChild(timerElement);
-
-        // Apply CSS classes
-        timerElement.className = 'timer';
-        
-        const titleElement = document.createElement('div');
-        titleElement.className = 'timer-title';
-        titleElement.textContent = `Timer ${pepperId}`;
-        timerElement.appendChild(titleElement);
-
-        const timeElement = document.createElement('div');
-        timeElement.id = `time-${timerId}`;
-        timeElement.textContent = '00:00:00';
-        timerElement.appendChild(timeElement);
-
-        // Update the timer reference to the time display
-        timers[timerId].element = timeElement;
+function loadData() {
+    const savedTimes = localStorage.getItem('harvestTimes');
+    const savedTotalSeconds = localStorage.getItem('totalSeconds');
+    if (savedTimes) {
+        harvestTimes = JSON.parse(savedTimes);
+        harvestTimes.forEach(seconds => appendHarvestTimeToList(seconds));
+        calculateAndDisplayAverage();
+    }
+    if (savedTotalSeconds) {
+        totalSeconds = parseInt(savedTotalSeconds);
+        updateTimerDisplay();
     }
 }
 
-// Initialization
+// Save data when the page is about to be unloaded
+window.addEventListener('beforeunload', saveData);
 
+// Initialization and Socket Events
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
-    // Listen for state update events
     socket.on('system_state_update', function (data) {
         updateStateMachine(10, data.state, 'system');
-    });
-
-
-    socket.on('timer_update', function (data) {
-        // Assuming data.elapsed_time contains the elapsed time in seconds
-        const elapsedSeconds = Math.round(data.elapsed_time);
-        const pepper_id = data.pepper_id;
-
-        const timerKey = 'timer' + pepper_id;
-        // console.log('Received timer_update:', pepper_id, " | ", data.elapsed_time);
-
-        // Add a new timer if it doesn't exist
-        addNewTimer(timerKey, pepper_id);
-
-        // Update the specific timer here
-        // For example, updating timer1. Adjust this based on your logic
-        timers[timerKey].seconds = elapsedSeconds;
-        // print in console the value it tis getting
-        updateTimerDisplay(timerKey);
+        // Example: Start or stop the timer based on the state
+        if (data.state === 3) { // Assuming state 3 is when harvesting starts
+            startTimer();
+        } else if (data.state === 8) { // Assuming state 8 is when harvesting ends
+            recordHarvestTime();
+        }
     });
 
     socket.on('amiga_state_update', function (data) {
-        if (data.state>0){
+        if (data.state > 0) {
             data.state = (data.state - 22) / 2;
-        }
-        else{
+        } else {
             data.state = -1;
         }
         updateAmigaStateMachine(data.state);
-        // console.log('Received amiga_state_update:', data.state);
     });
-
-    // const plants = document.querySelectorAll('.plant');
-    // if (plants.length > 0) {
-    //     // Applying the blinking effect to the first plant
-    //     plants[0].style.animation = "blink-shadow 1s infinite";
-    // }
+    window.onload = loadData;
 
 });
