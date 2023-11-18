@@ -38,18 +38,26 @@ function stopTimer() {
         interval = null;
     }
 }
+function clearTimer() {
+    stopTimer();
+    totalSeconds = 0;
+    updateTimerDisplay();
+    harvestTimes = [];
+    document.getElementById('harvest-times-list').innerHTML = '';
+    document.getElementById('average-time').textContent = '';
+    saveData(); // Optional: Save the cleared state to local storage
+}
 
 function updateTimerDisplay() {
     const timerElement = document.getElementById('timer-display');
-    timerElement.textContent = `Total Time: ${formatTime(totalSeconds)}`;
+    timerElement.textContent = `${formatTime(totalSeconds)}`;
 }
 
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
     const remainingSeconds = seconds % 60;
-    return `${padZero(hours)}:${padZero(remainingMinutes)}:${padZero(remainingSeconds)}`;
+    return `${padZero(remainingMinutes)}:${padZero(remainingSeconds)}`;
 }
 
 function padZero(num) {
@@ -68,10 +76,30 @@ function recordHarvestTime() {
     startTimer();
 }
 
+// function appendHarvestTimeToList(seconds) {
+//     const list = document.getElementById('harvest-times-list');
+//     const listItem = document.createElement('li');
+//     listItem.textContent = `Harvest Time: ${formatTime(seconds)}`;
+//     list.appendChild(listItem);
+// }
 function appendHarvestTimeToList(seconds) {
     const list = document.getElementById('harvest-times-list');
     const listItem = document.createElement('li');
-    listItem.textContent = `Harvest Time: ${formatTime(seconds)}`;
+
+    // Create an image element for the pepper icon
+    const pepperIcon = document.createElement('img');
+    pepperIcon.src =  '/images/pepper.jpeg'; // Replace with the actual path to your pepper icon image
+    pepperIcon.alt = '.'; // Add alt text for accessibility
+
+    // Create a span element for the text and add the formatted time
+    const textSpan = document.createElement('span');
+    textSpan.textContent = `Pepper Harvest: ${formatTime(seconds)}`;
+
+    // Append the pepper icon and text span to the list item
+    listItem.appendChild(pepperIcon);
+    listItem.appendChild(textSpan);
+
+    // Append the list item to the list
     list.appendChild(listItem);
 }
 
@@ -79,7 +107,7 @@ function appendHarvestTimeToList(seconds) {
 function calculateAndDisplayAverage() {
     const average = harvestTimes.reduce((a, b) => a + b, 0) / harvestTimes.length;
     const averageElement = document.getElementById('average-time');
-    averageElement.textContent = `Average Time: ${formatTime(Math.round(average))}`;
+    averageElement.textContent = `${formatTime(Math.round(average))}`;
 }
 
 function saveData() {
@@ -127,5 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAmigaStateMachine(data.state);
     });
     window.onload = loadData;
+    document.getElementById('clear-timer-button').addEventListener('click', clearTimer);
 
 });
