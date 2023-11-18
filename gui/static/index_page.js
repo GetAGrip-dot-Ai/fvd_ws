@@ -76,27 +76,15 @@ function recordHarvestTime() {
     startTimer();
 }
 
-// function appendHarvestTimeToList(seconds) {
-//     const list = document.getElementById('harvest-times-list');
-//     const listItem = document.createElement('li');
-//     listItem.textContent = `Harvest Time: ${formatTime(seconds)}`;
-//     list.appendChild(listItem);
-// }
 function appendHarvestTimeToList(seconds) {
     const list = document.getElementById('harvest-times-list');
     const listItem = document.createElement('li');
-
-    // Create an image element for the pepper icon
-    const pepperIcon = document.createElement('img');
-    pepperIcon.src =  '/images/pepper.jpeg'; // Replace with the actual path to your pepper icon image
-    pepperIcon.alt = '.'; // Add alt text for accessibility
 
     // Create a span element for the text and add the formatted time
     const textSpan = document.createElement('span');
     textSpan.textContent = `Pepper Harvest: ${formatTime(seconds)}`;
 
     // Append the pepper icon and text span to the list item
-    listItem.appendChild(pepperIcon);
     listItem.appendChild(textSpan);
 
     // Append the list item to the list
