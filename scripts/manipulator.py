@@ -141,7 +141,11 @@ class Manipulator:
     def multiframe(self):
         """scan down the pepper plant"""
         print("Multiframe: scanning the plant")
+        current_pos = self.arm.get_position()[1]
+        self.arm.set_position()
         self.cartesianMove(-0.2,2) # move up 20 cm in z
+        self.cartesianMove(0.1,2) # move left 10 cm in y
+        self.cartesianMove(-0.1,2) # move right 10 cm in y
         self.cartesianMove(0.2,2) # move down 20 cm in z
 
     def execute_traj(self, points):
