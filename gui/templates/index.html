@@ -72,24 +72,24 @@
                     <div class="row">
                         <!-- State 1 -->
                         <div id="system-state-0" class="state-circle-m state-circle">
-                            <div class="state-title">[0] IDLE/Amiga Teleop</div>
+                            <div class="state-title">IDLE/Amiga Teleop</div>
                         </div>
                         <div class="arrow-right"></div>
 
                         <!-- State 2 -->
                         <div id="system-state-1" class="state-circle-m state-circle">
-                            <div class="state-title">[1] xArm Teleop</div>
+                            <div class="state-title">xArm Teleop</div>
                         </div>
                         <div class="arrow-right"></div>
 
                         <!-- State 3 -->
                         <div id="system-state-2" class="state-circle-m state-circle">
-                            <div class="state-title">[2] Manual: Move to Init</div>
+                            <div class="state-title">Manual: Move to Init</div>
                         </div>
 
                         <!-- State 10 -->
                         <div id="system-state-10" class="state-circle-m state-circle">
-                            <div class="state-title">[10] Error</div>
+                            <div class="state-title">Error</div>
                         </div>
                         <!-- No arrow after the last state -->
                     </div> 
@@ -104,25 +104,25 @@
                     <div class="row">
                         <!-- State 1 -->
                         <div id="system-state-3" class="state-circle-m state-circle">
-                            <div class="state-title">[3] Move to Init</div>
+                            <div class="state-title">Move to Init</div>
                         </div>
                         <div class="arrow-right"></div>
             
                         <!-- State 2 -->
                         <div id="system-state-4" class="state-circle-m state-circle">
-                            <div class="state-title">[4] Multiframe</div>
+                            <div class="state-title">Multiframe</div>
                         </div>
                         <div class="arrow-right"></div>
             
                         <!-- State 3 -->
                         <div id="system-state-5" class="state-circle-m state-circle">
-                            <div class="state-title">[5] Move to Pregrasp</div>
+                            <div class="state-title">Move to Pregrasp</div>
                         </div>
                         <div class="arrow-right"></div>
             
                         <!-- State 4 -->
                         <div id="system-state-6" class="state-circle-m state-circle">
-                            <div class="state-title">[6] Move to POI</div>
+                            <div class="state-title">Move to POI</div>
                         </div>
                     </div>
             
@@ -130,19 +130,19 @@
                     <div class="row">
                         <!-- State 5 -->
                         <div id="system-state-7" class="state-circle-m state-circle">
-                            <div class="state-title">[7] Harvest</div>
+                            <div class="state-title">Harvest</div>
                         </div>
                         <div class="arrow-right"></div>
             
                         <!-- State 6 -->
                         <div id="system-state-8" class="state-circle-m state-circle">
-                            <div class="state-title">[8] Move to basket</div>
+                            <div class="state-title">Move to basket</div>
                         </div>
                         <div class="arrow-right"></div>
             
                         <!-- State 7 -->
                         <div id="system-state-9" class="state-circle-m state-circle">
-                            <div class="state-title">[9] Release & Reset</div>
+                            <div class="state-title">Release & Reset</div>
                         </div>
                     </div>
                 </div>
@@ -167,10 +167,18 @@
         <div class="col-md-4">
             <!-- Timers -->
             <div class="col">
-                <h3>Timers</h3>
-                <div id="timers">
+                <h3>Average Time</h3>
+                <div id="average-time" class="state-circle-timer state-circle">
                     <!-- Content -->
                 </div>
+
+                <h3>Current Pepper Harvest Time</h3>
+                <div id="timer-display" class="state-circle-timer state-circle">
+                    <!-- Content -->
+                </div>
+                <h3>Previous Pepper Harvest Times</h3>
+                <ul id="harvest-times-list" ></ul>
+
             </div>
         </div>
     </div>
