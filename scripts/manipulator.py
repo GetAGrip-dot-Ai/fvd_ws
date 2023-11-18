@@ -145,11 +145,13 @@ class Manipulator:
     def multiframe(self):
         """scan down the pepper plant"""
         print("Multiframe: scanning the plant")
-        current_pos = self.arm.get_position()[1]
-        self.arm.set_servo_angle(servo_id=5, angle=self.mf_angle, is_radian=False, wait=True, speed=10)
-        self.cartesianMove(-0.2,2) # move up 20 cm in z
-        self.cartesianMove(0.2,2) # move down 20 cm in z
-        self.arm.set_servo_angle(servo_id=5, angle=self.init_pose_joints[4], is_radian=False, wait=True, speed=10)
+        self.cartesianMove(-0.15,2) # move up 20 cm in z
+        self.cartesianMove(0.15,2) # move down 20 cm in z
+        # current_pos = self.arm.get_position()[1]
+        # self.arm.set_servo_angle(servo_id=5, angle=self.mf_angle, is_radian=False, wait=True, speed=10)
+        # self.cartesianMove(-0.2,2) # move up 20 cm in z
+        # self.cartesianMove(0.2,2) # move down 20 cm in z
+        # self.arm.set_servo_angle(servo_id=5, angle=self.init_pose_joints[4], is_radian=False, wait=True, speed=10)
 
     def execute_traj(self, points):
         """execute an interpolated trajectory of waypoints"""
@@ -162,14 +164,15 @@ class Manipulator:
     def test(self):
         print("TESTING")
         # self.arm.set_position(260, -40, 387, -90, 45, -90, wait=True, speed=30)
-        # code, angles = self.arm.get_servo_angle(is_radian=False)
-        # print(angles)
+        code, angles = self.arm.get_servo_angle(is_radian=False)
+        print(angles)
         # self.arm.set_servo_angle(angle=self.joint_angles, is_radian=False, wait=True, speed=50)
 
-        # current_pose = self.arm.get_position()[1]
+        current_pose = self.arm.get_position()[1]
+        print(current_pose)
 
-        self.moveToInit()
-        self.multiframe()
+        # self.moveToInit()
+        # self.multiframe()
         # self.execute_traj(self.from_basket_points)
         print("done executing trajectory")
 
