@@ -1,25 +1,3 @@
-const systemStatesManual = [
-    { title: '[0] IDLE/Amiga Teleop', value: '[0] idle' },
-    { title: '[1] xArm Teleop', value: '[1] teleop' },
-    { title: '[2] Manual: Move to Init', value: '[2] visual servo' },
-    { title: '[10] Error', value: '[10] Error' }
-];
-
-const systemStatesAutonomous = [
-    { title: '[3] Move to Init', value: '[3] return to init' },
-    { title: '[4] Multiframe', value: '[4] move to init pose' },
-    { title: '[5] Move to Pregrasp', value: '[5] multiframe' },
-    { title: '[6] Move to POI', value: '[6] move to pregrasp' },
-    { title: '[7] Harvest', value: '[7] move to poi' },
-    { title: '[8] Move to basket', value: '[8] harvest pepper' },
-    { title: '[9] Release & Reset', value: '[9] basket drop' },
-];
-const amigaStates = [
-    { title: 'Manual', value: 'Not Moving' },
-    { title: 'Manual', value: 'Manually Moving' },
-    { title: 'Autonomous', value: 'Autonomously Moving' },
-    { title: 'Manual', value: 'IDK' },
-];
 // JavaScript for handling the state machines and timers
 function createStateCircles(states, containerId, prefix) {
     const container = document.getElementById(containerId);
@@ -56,17 +34,26 @@ function updateStateMachine(state_len, state, prefix) {
         activeState.classList.add('active');
     }
 }
+function updateAmigaStateMachine(state) {
+    console.log(state);
+    const plants = document.querySelectorAll('#plant-bed .plant');
+    plants.forEach(plant => plant.classList.remove('blink-shadow')); // Remove blinking from all plants
+
+    if (state >= 0 && state < plants.length) {
+        // Apply blinking to the specific plant
+        plants[state].classList.add('blink-shadow');
+    }
+}
+
 
 // Timer functionality
-
 let timers = {
     timer1: { element: null, interval: null, seconds: 0 },
 };
 function formatTime(seconds) {
-    const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
-    return `${padZero(hours)}:${padZero(minutes)}:${padZero(remainingSeconds)}`;
+    return `${padZero(minutes)}:${padZero(remainingSeconds)}`;
 }
 
 function padZero(num) {
@@ -76,7 +63,7 @@ function padZero(num) {
 
 function updateTimerDisplay(timerId) {
     const timer = timers[timerId];
-    timer.element.textContent = `Timer ${timerId}: ${formatTime(timer.seconds)}`;
+    timer.element.textContent = `Pepper Harvest Time: ${formatTime(timer.seconds)}`;
 }
 
 
@@ -98,6 +85,7 @@ function stopTimer(timerId) {
 function stopAllTimers() {
     Object.keys(timers).forEach(stopTimer);
 }
+
 function addNewTimer(timerId, pepperId) {
     // Check if the timer already exists
     if (!timers[timerId]) {
@@ -132,10 +120,6 @@ function addNewTimer(timerId, pepperId) {
 // Initialization
 
 document.addEventListener('DOMContentLoaded', () => {
-    // createStateCircles(systemStatesManual, 'system-state-manual-machine', 'system', 'state-machine-container'); // Add 'state-machine-container' class
-    // createStateCircles(systemStatesAutonomous, 'system-state-autonomous-machine', 'system', 'state-machine-container'); // Add 'state-machine-container' class
-    // createStateCircles(amigaStates, 'amiga-state-machine', 'amiga', 'state-machine-container'); // Add 'state-machine-container' class
-
     const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     // Listen for state update events
@@ -150,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const pepper_id = data.pepper_id;
 
         const timerKey = 'timer' + pepper_id;
-        console.log('Received timer_update:', pepper_id, " | ", data.elapsed_time);
+        // console.log('Received timer_update:', pepper_id, " | ", data.elapsed_time);
 
         // Add a new timer if it doesn't exist
         addNewTimer(timerKey, pepper_id);
@@ -162,9 +146,21 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTimerDisplay(timerKey);
     });
 
-
     socket.on('amiga_state_update', function (data) {
-        updateStateMachine(3, data.state, 'amiga');
+        if (data.state>0){
+            data.state = (data.state - 22) / 2;
+        }
+        else{
+            data.state = -1;
+        }
+        updateAmigaStateMachine(data.state);
+        // console.log('Received amiga_state_update:', data.state);
     });
+
+    // const plants = document.querySelectorAll('.plant');
+    // if (plants.length > 0) {
+    //     // Applying the blinking effect to the first plant
+    //     plants[0].style.animation = "blink-shadow 1s infinite";
+    // }
 
 });
