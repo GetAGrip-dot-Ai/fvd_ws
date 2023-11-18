@@ -30,6 +30,7 @@ class Manipulator:
         self.joint_angles = None
         self.init_pose_joints = None
         self.retract_depth = None
+        self.extra_depth = None
         self.encore = rospy.get_param('/encore')
         self.ip = rospy.get_param('/xarm_robot_ip')
         arm_yaml = rospy.get_param('/arm_yaml')
@@ -60,6 +61,7 @@ class Manipulator:
         self.joint_angles = data["joint_angles"]
         self.init_pose_joints = data["init_pose_joints"]
         self.retract_depth = data["retract_depth"]
+        self.extra_depth = data["extra_depth"]
 
     def moveToInit(self):
         """move to initial position"""
@@ -106,7 +108,7 @@ class Manipulator:
             self.arm.set_position(x * 1000 ,y * 1000 ,z * 1000 ,*self.orientation, wait=True, speed=self.traj_speed)
 
     def moveToPoi(self):
-        self.cartesianMove(self.pregrasp_offset,0) # move forward in x
+        self.cartesianMove(self.pregrasp_offset+self.extra_depth,0) # move forward in x
 
     def orientParallel(self):
         current_pos = self.arm.get_position()[1]
@@ -144,8 +146,8 @@ class Manipulator:
         current_pos = self.arm.get_position()[1]
         self.arm.set_position()
         self.cartesianMove(-0.2,2) # move up 20 cm in z
-        self.cartesianMove(0.1,2) # move left 10 cm in y
-        self.cartesianMove(-0.1,2) # move right 10 cm in y
+        self.cartesianMove(0.15,1) # move left 10 cm in y
+        self.cartesianMove(-0.15,1) # move right 10 cm in y
         self.cartesianMove(0.2,2) # move down 20 cm in z
 
     def execute_traj(self, points):
