@@ -111,7 +111,7 @@ class PlannerNode:
                 xarm.disconnect()
                 rospy.sleep(.1)
                 rospy.logwarn("Plan Execution: Initalization Started")
-                # self.send_to_ee("open")
+                self.send_to_ee("open")
                 rospy.logwarn("Plan Execution: Initalization Complete")
                 self.publish_value = 3
             except:
@@ -169,7 +169,7 @@ class PlannerNode:
 
         # harvest pepper
         elif self.state == 7:
-            # self.send_to_ee("harvest")
+            self.send_to_ee("harvest")
             self.publish_value = 7
             
         # move to basket and drop then go back to init
@@ -182,7 +182,7 @@ class PlannerNode:
                 rospy.sleep(8)
                 xarm.disconnect()
                 rospy.logwarn("Plan Execution: Move to Basket Complete")
-                # self.send_to_ee("open")
+                self.send_to_ee("open")
                 rospy.sleep(2)
                 xarm = Manipulator()
                 xarm.moveFromBasket()

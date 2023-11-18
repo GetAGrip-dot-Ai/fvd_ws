@@ -180,7 +180,7 @@ if __name__ == '__main__':
 
     try:
         xarm = Manipulator()
-        xarm.test()
+        # xarm.test()
 
         while not rospy.is_shutdown():
             rospy.sleep(0.1)
