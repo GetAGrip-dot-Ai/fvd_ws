@@ -31,6 +31,7 @@ class Manipulator:
         self.init_pose_joints = None
         self.retract_depth = None
         self.extra_depth = None
+        self.mf_angle = None
         self.encore = rospy.get_param('/encore')
         self.ip = rospy.get_param('/xarm_robot_ip')
         arm_yaml = rospy.get_param('/arm_yaml')
@@ -62,6 +63,7 @@ class Manipulator:
         self.init_pose_joints = data["init_pose_joints"]
         self.retract_depth = data["retract_depth"]
         self.extra_depth = data["extra_depth"]
+        self.mf_angle = data["mf_angle"]
 
     def moveToInit(self):
         """move to initial position"""
@@ -144,11 +146,10 @@ class Manipulator:
         """scan down the pepper plant"""
         print("Multiframe: scanning the plant")
         current_pos = self.arm.get_position()[1]
-        self.arm.set_position()
+        self.arm.set_servo_angle(servo_id=5, angle=self.mf_angle, is_radian=False, wait=True, speed=10)
         self.cartesianMove(-0.2,2) # move up 20 cm in z
-        self.cartesianMove(0.15,1) # move left 10 cm in y
-        self.cartesianMove(-0.15,1) # move right 10 cm in y
         self.cartesianMove(0.2,2) # move down 20 cm in z
+        self.arm.set_servo_angle(servo_id=5, angle=self.init_pose_joints[4], is_radian=False, wait=True, speed=10)
 
     def execute_traj(self, points):
         """execute an interpolated trajectory of waypoints"""
@@ -166,17 +167,9 @@ class Manipulator:
         # self.arm.set_servo_angle(angle=self.joint_angles, is_radian=False, wait=True, speed=50)
 
         # current_pose = self.arm.get_position()[1]
-        # print(current_pose)
-        self.moveToBasket()
-        self.execute_traj(self.from_basket_points)
-        # rospy.sleep(10)
 
-        # self.moveFromBasket()
-        # for traj in self.arm.get_trajectories():
-        #     print(traj)
-
-        # self.moveToInit()
-
+        self.moveToInit()
+        self.multiframe()
         # self.execute_traj(self.from_basket_points)
         print("done executing trajectory")
 
@@ -187,7 +180,7 @@ if __name__ == '__main__':
 
     try:
         xarm = Manipulator()
-        # xarm.test()
+        xarm.test()
 
         while not rospy.is_shutdown():
             rospy.sleep(0.1)
