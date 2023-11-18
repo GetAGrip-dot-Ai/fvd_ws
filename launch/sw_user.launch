@@ -32,6 +32,6 @@
   <node pkg="tf2_ros" type="static_transform_publisher" name="rviz_tf" args="0 0 0 1 0 0 0  world link_base" if="$(arg on_amiga)"/>
   
   <!-- gui node -->
-  <node pkg="peter"  name="pepper_gui" type="gui_backend.py"></node>
+  <node pkg="peter"  name="pepper_gui" type="gui_backend_user.py"></node>
 
 </launch>
