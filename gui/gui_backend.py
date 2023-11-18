@@ -87,7 +87,7 @@ def amiga_state_callback(msg):
 def ros_thread():
     rospy.Subscriber('/camera/color/image_raw', Image, image_callback)
     rospy.Subscriber('/state', Int16, system_state_callback)
-    rospy.Subscriber('/amiga_state', Int16, amiga_state_callback)
+    rospy.Subscriber('/amiga_aligned', Int16, amiga_state_callback)
     continuous_publish()
     rospy.spin()
 

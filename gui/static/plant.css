@@ -1,0 +1,39 @@
+.plant-bed {
+    display: flex;
+    justify-content: space-between;
+    /* Spaces out children evenly between first and last */
+    align-items: center;
+    position: relative;
+    background-image: url("./images/plant_bed.png");
+    background-size: cover;
+    width: 100%;
+    height: 300px;
+    padding: 0 15%;
+    /* Adds padding to the sides */
+}
+
+.plant {
+    /* position: absolute; */
+    width: 100px;
+    /* Adjust based on the size of your plant images */
+    height: auto;
+    /* Adjust based on the size of your plant images */
+    /* Adjust the top and left properties to position each plant */
+}
+
+/* Keyframes for blinking shadow */
+@keyframes blink-shadow {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 10px green);
+    }
+
+    50% {
+        filter: none;
+    }
+}
+
+.plant.blink-shadow {
+    animation: blink-shadow 1s infinite;
+}
