@@ -27,7 +27,10 @@ class Manipulator:
         self.from_basket_points = None
         self.cartesian_speed = None
         self.traj_speed = None
-        self.encore = False#rospy.get_param('/encore')
+        self.joint_angles = None
+        self.init_pose_joints = None
+        self.retract_depth = None
+        self.encore = rospy.get_param('/encore')
         self.ip = rospy.get_param('/xarm_robot_ip')
         arm_yaml = rospy.get_param('/arm_yaml')
         rospack = rospkg.RosPack()
@@ -54,12 +57,15 @@ class Manipulator:
         self.from_basket_points = data["from_basket_points"]
         self.cartesian_speed = int(data["cartesian_speed"])
         self.traj_speed = int(data["traj_speed"])
-
+        self.joint_angles = data["joint_angles"]
+        self.init_pose_joints = data["init_pose_joints"]
+        self.retract_depth = data["retract_depth"]
 
     def moveToInit(self):
         """move to initial position"""
         print("Moving to initial pose")
-        self.arm.set_position(*self.init_pose, wait=True, speed=self.traj_speed)
+        # self.arm.set_position(*self.init_pose, wait=True, speed=self.traj_speed)
+        self.arm.set_servo_angle(angle=self.init_pose_joints, is_radian=False, wait=True, speed=self.traj_speed)
 
     def cartesianMove(self,dist,axis): 
         """cartesian move along y"""
@@ -107,10 +113,21 @@ class Manipulator:
         self.arm.set_position(*current_pos[0:3] ,*self.orientation, wait=True, speed=self.traj_speed)
 
     def moveToBasket(self):
-        """move to basket pose for pepper drop off"""
-        self.cartesianMove(-0.05,0) # move back 5 cm
-        self.orientParallel() # straighten orientation if needed
-        self.cartesianMove(-0.18,0) # move back 15 cm
+        """move to basket pose from POI for pepper drop off"""
+        # cartesian move back first
+        current_pos = self.arm.get_position()[1]
+        dx = (current_pos[0] - self.retract_depth)/1000
+        if self.encore:
+            self.cartesianMove(-0.05,0) # move back 5 cm
+            self.orientParallel() # straighten orientation if needed
+            self.cartesianMove(-dx+5,0) # move back to retract depth
+        else:
+            self.cartesianMove(-dx,0) # move back to retract depth
+
+        # set correct joint angles so there are no errors
+        self.arm.set_servo_angle(angle=self.joint_angles, is_radian=False, wait=True, speed=self.cartesian_speed)
+        
+        # basket trajectory
         rospy.logwarn("Moving to basket pose")
         self.execute_traj(self.to_basket_points)
         rospy.logwarn("Done Traj to basket")
@@ -137,16 +154,22 @@ class Manipulator:
 
     def test(self):
         print("TESTING")
+        # self.arm.set_position(260, -40, 387, -90, 45, -90, wait=True, speed=30)
+        # code, angles = self.arm.get_servo_angle(is_radian=False)
+        # print(angles)
+        # self.arm.set_servo_angle(angle=self.joint_angles, is_radian=False, wait=True, speed=50)
+
         # current_pose = self.arm.get_position()[1]
         # print(current_pose)
-        # self.moveToBasket()
+        self.moveToBasket()
+        self.execute_traj(self.from_basket_points)
         # rospy.sleep(10)
 
         # self.moveFromBasket()
         # for traj in self.arm.get_trajectories():
         #     print(traj)
 
-        self.moveToInit()
+        # self.moveToInit()
 
         # self.execute_traj(self.from_basket_points)
         print("done executing trajectory")
@@ -158,7 +181,7 @@ if __name__ == '__main__':
 
     try:
         xarm = Manipulator()
-        xarm.test()
+        # xarm.test()
 
         while not rospy.is_shutdown():
             rospy.sleep(0.1)
