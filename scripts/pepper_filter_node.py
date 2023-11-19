@@ -37,8 +37,10 @@ NEAREST_NEIGHBOR_METRIC = 0.03 # [m]
 
 # explicit rejection of peppers happens above this value
 RADIAL_REJECTION = 100.0 # [cm]
+PLANT_RADIUS = 40.0 # [cm]
 
 RADIAL_REJECTION /= 100.0 # [m]
+PLANT_RADIUS /= 100.0 # [m]
 
 
 class PepperFilterNode:
@@ -76,6 +78,10 @@ class PepperFilterNode:
             
             # reject clusters too far from base frame
             if norm(new_cluster.center) > RADIAL_REJECTION: 
+                continue
+            
+            # if abs(new_cluster.center[1]) > PLANT_RADIUS:
+            if new_cluster.center[1] > 60 or new_cluster.center[1] <-20 :
                 continue
             
             if self.clusters:

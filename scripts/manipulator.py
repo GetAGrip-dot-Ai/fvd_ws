@@ -146,8 +146,8 @@ class Manipulator:
         """scan down the pepper plant"""
         print("Multiframe: scanning the plant")
         current_pos = self.arm.get_position()[1]
-        self.arm.set_servo_angle(servo_id=5, angle=self.mf_angle, is_radian=False, wait=True, speed=10)
         self.cartesianMove(-0.2,2) # move up 20 cm in z
+        self.arm.set_servo_angle(servo_id=5, angle=self.mf_angle, is_radian=False, wait=True, speed=10)
         self.cartesianMove(0.2,2) # move down 20 cm in z
         self.arm.set_servo_angle(servo_id=5, angle=self.init_pose_joints[4], is_radian=False, wait=True, speed=10)
 

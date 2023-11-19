@@ -58,7 +58,6 @@ class PlannerNode:
 
     def send_to_ee(self, command):
         """Send commands to open, harvest, or close for end-effector"""
-        # rospy.wait_for_service('/gripper_service')
         if command == "open":
             try:
                 rospy.wait_for_service('/gripper_service')
