@@ -11,11 +11,25 @@ function updateStateMachine(state_len, state, prefix) {
 }
 
 function updateAmigaStateMachine(state) {
-    console.log(state);
+    console.log("amiga state: ", state);
     const plants = document.querySelectorAll('#plant-bed .plant');
-    plants.forEach(plant => plant.classList.remove('blink-shadow'));
+
+    // Only remove the blink-shadow class when a valid positive state is received
     if (state >= 0 && state < plants.length) {
+        plants.forEach(plant => plant.classList.remove('blink-shadow'));
         plants[state].classList.add('blink-shadow');
+    } else if (state === -1) {
+        // When state is -1, keep the blinking effect on the currently blinking plant
+        // or start blinking the first plant if none is blinking
+        let isAnyPlantBlinking = false;
+        plants.forEach(plant => {
+            if (plant.classList.contains('blink-shadow')) {
+                isAnyPlantBlinking = true;
+            }
+        });
+        if (!isAnyPlantBlinking && plants.length > 0) {
+            plants[0].classList.add('blink-shadow');
+        }
     }
 }
 
@@ -120,6 +134,14 @@ function loadData() {
 // Save data when the page is about to be unloaded
 window.addEventListener('beforeunload', saveData);
 
+const mapping = {
+    22: 0,
+    144: 0,
+    24: 1,
+    26: 2,
+    28: 3
+};
+
 // Initialization and Socket Events
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
@@ -135,8 +157,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     socket.on('amiga_state_update', function (data) {
+        console.log("amiga state original: ", data.state);
+        console.log("amiga state mapped: ", mapping[data.state]);
         if (data.state > 0) {
-            data.state = (data.state - 22) / 2;
+            data.state = mapping[data.state];
         } else {
             data.state = -1;
         }
