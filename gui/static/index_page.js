@@ -39,6 +39,7 @@ let totalSeconds = 0;
 let interval = null;
 
 function startTimer() {
+    console.log("Starting timer")
     if (interval === null) {
         interval = setInterval(() => {
             totalSeconds++;
@@ -48,6 +49,7 @@ function startTimer() {
 }
 
 function stopTimer() {
+    console.log("ending timer")
     if (interval !== null) {
         clearInterval(interval);
         interval = null;
