@@ -99,7 +99,7 @@ class PepperFilterNode:
                 else:
                     self.clusters.append(new_cluster)
                 
-                sorting_criteria = lambda p: p.dist_from_ee
+                sorting_criteria = lambda p: p.observations
                 self.clusters = sorted(self.clusters, key=sorting_criteria)
             else:
                 self.clusters.append(new_cluster)
@@ -222,10 +222,10 @@ class Cluster:
         self.center = np.array([position.x, position.y, position.z])
         self.quat = np.array([orientation.x, orientation.y, orientation.z, orientation.w])
         self.vec = self.quat_to_vec(self.quat)
-        self.tfBuffer = tf2_ros.Buffer()
-        self.listener = tf2_ros.TransformListener(self.tfBuffer)
+        # self.tfBuffer = tf2_ros.Buffer()
+        # self.listener = tf2_ros.TransformListener(self.tfBuffer)
         
-        self.calc_dist_from_ee()
+        # self.calc_dist_from_ee()
                 
         # time creation: used to reject infrequent observations
         self.birth = time.time()
@@ -295,17 +295,17 @@ class Cluster:
         return quat
         
     
-    def calc_dist_from_ee(self):
+    # def calc_dist_from_ee(self):
         
-        rospy.sleep(0.1)
-        transformation = self.tfBuffer.lookup_transform("link_base", "camera_color_optical_frame", 
-                                                        rospy.Time.now(), rospy.Duration(0.5))
-        ee_loc = np.array(
-            [transformation.transform.translation.x, 
-             transformation.transform.translation.y, 
-             transformation.transform.translation.z])
+    #     rospy.sleep(0.1)
+    #     transformation = self.tfBuffer.lookup_transform("link_base", "camera_color_optical_frame", 
+    #                                                     rospy.Time.now(), rospy.Duration(0.5))
+    #     ee_loc = np.array(
+    #         [transformation.transform.translation.x, 
+    #          transformation.transform.translation.y, 
+    #          transformation.transform.translation.z])
         
-        self.dist_from_ee = norm(self.center - ee_loc)
+    #     self.dist_from_ee = norm(self.center - ee_loc)
     
     def time_since_birth(self):
         return time.time() - self.birth
