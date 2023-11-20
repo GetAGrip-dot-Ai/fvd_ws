@@ -26,7 +26,7 @@
 
     0%,
     100% {
-        filter: drop-shadow(0 0 20px rgb(0, 41, 128));
+        filter: drop-shadow(0 0 25px rgb(107, 142, 35));
     }
 }
 

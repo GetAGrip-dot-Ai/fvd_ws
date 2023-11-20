@@ -176,3 +176,46 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('clear-timer-button').addEventListener('click', clearTimer);
 
 });
+document.addEventListener('keydown', function (event) {
+    if (event.key === 's') {
+        // Launch confetti from various points
+        confetti({
+            particleCount: 250, // More particles
+            spread: 120, // Wider spread
+            origin: { y: 0.6, x: 0 } // Starting from the left
+        });
+        confetti({
+            particleCount: 250,
+            spread: 120,
+            origin: { y: 0.6, x: 1 } // Starting from the right
+        });
+
+        // Optionally, add more bursts with slight delays
+        setTimeout(function () {
+            confetti({
+                particleCount: 250,
+                spread: 100,
+                origin: { y: 0.4, x: 0.3 }
+            });
+        }, 250);
+
+        setTimeout(function () {
+            confetti({
+                particleCount: 250,
+                spread: 100,
+                origin: { y: 0.4, x: 0.7 }
+            });
+        }, 500);
+    }
+    else if (event.key === 'f') {
+        confetti({
+            particleCount: 300, // Less density
+            angle: 60,
+            spread: 155,
+            origin: { y: 0.6 },
+            colors: ['#4a4e69', '#9a8c98', '#c9ada7', '#f2e9e4'], // Somber colors
+            gravity: 0.5, // Slower fall
+            scalar: 0.8 // Smaller particles
+        });
+    }
+});
