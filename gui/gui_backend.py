@@ -40,7 +40,7 @@ def amiga_state_callback(msg):
 
 
 def ros_thread():
-    rospy.Subscriber('/state', Int16, system_state_callback)
+    rospy.Subscriber('/system_state', Int16, system_state_callback)
     rospy.Subscriber('/amiga_aligned', Int16, amiga_state_callback)
 
     # Handling ROS spin in a try-except block

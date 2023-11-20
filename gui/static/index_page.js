@@ -109,7 +109,7 @@ function appendHarvestTimeToList(seconds) {
 
 
 function calculateAndDisplayAverage() {
-    const average = harvestTimes.reduce((a, b) => a + b, 0) / harvestTimes.length;
+    const average = harvestTimes.reduce((a, b) => a + b, 0);
     const averageElement = document.getElementById('average-time');
     averageElement.textContent = `${formatTime(Math.round(average))}`;
 }
@@ -144,6 +144,7 @@ const mapping = {
     28: 3
 };
 
+let prev_state = -1;
 // Initialization and Socket Events
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
@@ -151,16 +152,19 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('system_state_update', function (data) {
         updateStateMachine(9, data.state, 'system');
         // Example: Start or stop the timer based on the state
-        if (data.state === 3) { // Assuming state 3 is when harvesting starts
+        if (data.state === 3 && prev_state != 3) { // Assuming state 3 is when harvesting starts
             startTimer();
-        } else if (data.state === 8) { // Assuming state 8 is when harvesting ends
+        } else if (data.state === 8 && prev_state != 8) { // Assuming state 8 is when harvesting ends
             recordHarvestTime();
         }
+        else if (data.state === 0 && prev_state == 4) { // Assuming state 8 is when harvesting ends
+            stopTimer();
+        }
+        prev_state = data.state;
+
     });
 
     socket.on('amiga_state_update', function (data) {
-        console.log("amiga state original: ", data.state);
-        console.log("amiga state mapped: ", mapping[data.state]);
         if (data.state > 0) {
             data.state = mapping[data.state];
         } else {

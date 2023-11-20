@@ -1,0 +1,11 @@
+<launch>
+
+  <!-- republish -->
+  <node pkg="peter"  name="pepper_gui" type="republish_state.py"></node>
+
+  <!-- Launch RViz with a specific configuration -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(peter)/rviz/pointcloud_viz.rviz" />
+
+    <!-- gui node -->
+  <node pkg="peter"  name="pepper_gui" type="gui_backend.py"></node>
+</launch>
