@@ -7,7 +7,7 @@ def publish_numbers():
     rospy.init_node('number_publisher', anonymous=True)
     system_pub = rospy.Publisher('/state', Int16, queue_size=10)
     amiga_pub = rospy.Publisher('/amiga_state', Int16, queue_size=10)
-    # rate = rospy.Rate(1)  # 0.2 Hz, equivalent to a 5-second delay
+    rate = rospy.Rate(1)  # 0.2 Hz, equivalent to a 5-second delay
 
     number = 2
     a_num = 0
@@ -27,7 +27,7 @@ def publish_numbers():
         if a_num > 3:
             a_num = 0
 
-        # rate.sleep()
+        rate.sleep()
 
 if __name__ == '__main__':
     try:

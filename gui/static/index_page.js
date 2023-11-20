@@ -1,5 +1,6 @@
 // JavaScript for handling the state machines and timers
 function updateStateMachine(state_len, state, prefix) {
+    console.log("system state: ", state);
     for (let i = 0; i <= state_len; i++) {
         const stateCircle = document.getElementById(`${prefix}-state-${i}`);
         stateCircle.classList.remove('active');
@@ -87,7 +88,6 @@ function recordHarvestTime() {
     calculateAndDisplayAverage();
     saveData(); // Save data after recording a new harvest time
     totalSeconds = 0; // Reset the timer for the next harvest
-    startTimer();
 }
 
 function appendHarvestTimeToList(seconds) {
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     socket.on('system_state_update', function (data) {
-        updateStateMachine(10, data.state, 'system');
+        updateStateMachine(9, data.state, 'system');
         // Example: Start or stop the timer based on the state
         if (data.state === 3) { // Assuming state 3 is when harvesting starts
             startTimer();

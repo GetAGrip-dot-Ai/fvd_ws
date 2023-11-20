@@ -23,6 +23,8 @@ def system_state_callback(msg):
     global system_state
     with lock:  # Ensuring thread safety
         system_state = msg.data
+        if system_state == 10:
+            system_state = 9
 
     # Emitting the updated state to the socket
     socketio.emit('system_state_update', {'state': system_state})
@@ -64,7 +66,7 @@ if __name__ == '__main__':
 
     # Starting the Flask app
     try:
-        socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+        socketio.run(app, host='0.0.0.0', port=5000, debug=False)
     except Exception as e:
         print("Flask server error:", e)
         # Additional error handling logic can be added here
