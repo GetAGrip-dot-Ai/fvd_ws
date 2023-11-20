@@ -29,6 +29,7 @@ class AmigaArucoNode:
             self.start = time.time()
 
         self.aligned_pub.publish(self.markers)
+        print(self.markers)
         
 
 if __name__ == '__main__':
