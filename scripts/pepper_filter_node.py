@@ -27,7 +27,7 @@ OBSERVATIONS_METRIC = 20 # unitless
 
 # OBSERVATIONS THRESHOLD
 # the amount of detections you need to publish a POI
-OBSERVATIONS_THRESHOLD = 1
+OBSERVATIONS_THRESHOLD = 3
 
 # if the cluster hasn't been seen in a while get rid of it
 TIME_SINCE_LAST_OB_METRIC = 10
@@ -124,9 +124,9 @@ class PepperFilterNode:
         poi_marker.color.g = 1
         poi_marker.color.b = 0
         poi_marker.color.a = 1
-        poi_marker.scale.x = 0.08
-        poi_marker.scale.y = 0.005
-        poi_marker.scale.z = 0.005
+        poi_marker.scale.x = 0.4
+        poi_marker.scale.y = 0.025
+        poi_marker.scale.z = 0.025
 
         if self.clusters:
             

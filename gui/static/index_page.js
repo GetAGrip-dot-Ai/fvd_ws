@@ -11,7 +11,7 @@ function updateStateMachine(state_len, state, prefix) {
 }
 
 function updateAmigaStateMachine(state) {
-    console.log(state);
+    console.log("state:", state);
     const plants = document.querySelectorAll('#plant-bed .plant');
     plants.forEach(plant => plant.classList.remove('blink-shadow'));
     if (state >= 0 && state < plants.length) {

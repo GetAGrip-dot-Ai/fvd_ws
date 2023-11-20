@@ -169,7 +169,7 @@ class Manipulator:
         # current_pose = self.arm.get_position()[1]
 
         # self.moveToInit()
-        self.moveFromBasket()
+        self.moveToBasket()
         # self.arm.set_position(190, -40, 440, -90, 45, -90, wait=True, speed=30)
         # self.execute_traj(self.from_basket_points)
         print("done executing trajectory")
@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
     try:
         xarm = Manipulator()
-        xarm.test()
+        # xarm.test()
 
         while not rospy.is_shutdown():
             rospy.sleep(0.1)
