@@ -27,17 +27,23 @@ class PlannerNode:
         self.visual_servoing_state = Twist() 
         self.poi = None
         self.poi_marker = make_marker(marker_type=8, frame_id='link_base', r=0, g=1, b=1, a=1, x=0.04, y=0.04)
+        self.has_grip = False
 
         # subscribers
         self.state_sub = rospy.Subscriber('/state', Int16, self.state_callback, queue_size=1) # state message
         self.joystick_sub = rospy.Subscriber('/joy', Joy, self.joystick_callback, queue_size=1) # joystick message        
         self.poi_sub = rospy.Subscriber('/poi', Pose, self.poi_callback, queue_size=1) # poi pose
+        self.has_grip_sub = rospy.Subscriber('/has_grip', Bool, self.has_grip_callback, queue_size=1) # has grip
 
         # publishers
         self.joy_pub = rospy.Publisher('/joy_relay', Joy, queue_size=1) # joystick commands pub
         self.planner_state_pub = rospy.Publisher('/planner_state', Int16, queue_size=1) # planner state pub
         self.state_pub = rospy.Publisher('/state', Int16, queue_size=1) # state pub
         self.poi_from_arm_pub = rospy.Publisher('/poi_from_arm', Marker, queue_size=1) # poi pub
+
+    def has_grip_callback(self, data):
+        """Callback for has_grip message"""
+        self.has_grip = data.data
 
 
     def state_callback(self, data):
@@ -173,6 +179,13 @@ class PlannerNode:
             
         # move to basket and drop then go back to init
         elif self.state == 8:
+
+            if not self.has_grip:
+                rospy.logwarn("No grip detected! Returning to initial position.")
+                self.state_pub.publish(8)
+                self.publish_value = 8
+                return
+
             try:
                 rospy.sleep(.1)
                 xarm = Manipulator()
