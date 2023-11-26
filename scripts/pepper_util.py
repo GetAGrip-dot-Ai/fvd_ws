@@ -243,7 +243,8 @@ class PepperPeduncle:
         idx = self.determine_poi(total_curve_length)
         self._poi_px = (self._curve.curve_x[idx], self._curve.curve_y[idx])
 
-        next_idx = idx + 10 if idx + 10 < len(self._curve.curve_x) else len(self._curve.curve_x) - 1
+        IDX = 8
+        next_idx = idx + IDX if idx + IDX < len(self._curve.curve_x) else len(self._curve.curve_x) - 1
         self._next_point_px = (self._curve.curve_x[next_idx], self._curve.curve_y[next_idx])
 
         return self._poi_px, self._next_point_px
