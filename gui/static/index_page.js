@@ -39,6 +39,7 @@ let totalSeconds = 0;
 let interval = null;
 
 function startTimer() {
+    console.log("Starting timer")
     if (interval === null) {
         interval = setInterval(() => {
             totalSeconds++;
@@ -48,6 +49,7 @@ function startTimer() {
 }
 
 function stopTimer() {
+    console.log("ending timer")
     if (interval !== null) {
         clearInterval(interval);
         interval = null;
@@ -107,7 +109,7 @@ function appendHarvestTimeToList(seconds) {
 
 
 function calculateAndDisplayAverage() {
-    const average = harvestTimes.reduce((a, b) => a + b, 0) / harvestTimes.length;
+    const average = harvestTimes.reduce((a, b) => a + b, 0);
     const averageElement = document.getElementById('average-time');
     averageElement.textContent = `${formatTime(Math.round(average))}`;
 }
@@ -142,6 +144,7 @@ const mapping = {
     28: 3
 };
 
+let prev_state = -1;
 // Initialization and Socket Events
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
@@ -149,16 +152,19 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('system_state_update', function (data) {
         updateStateMachine(9, data.state, 'system');
         // Example: Start or stop the timer based on the state
-        if (data.state === 3) { // Assuming state 3 is when harvesting starts
+        if (data.state === 3 && prev_state != 3) { // Assuming state 3 is when harvesting starts
             startTimer();
-        } else if (data.state === 8) { // Assuming state 8 is when harvesting ends
+        } else if (data.state === 8 && prev_state != 8) { // Assuming state 8 is when harvesting ends
             recordHarvestTime();
         }
+        else if (data.state === 0 && prev_state == 4) { // Assuming state 8 is when harvesting ends
+            stopTimer();
+        }
+        prev_state = data.state;
+
     });
 
     socket.on('amiga_state_update', function (data) {
-        console.log("amiga state original: ", data.state);
-        console.log("amiga state mapped: ", mapping[data.state]);
         if (data.state > 0) {
             data.state = mapping[data.state];
         } else {
@@ -169,4 +175,47 @@ document.addEventListener('DOMContentLoaded', () => {
     window.onload = loadData;
     document.getElementById('clear-timer-button').addEventListener('click', clearTimer);
 
+});
+document.addEventListener('keydown', function (event) {
+    if (event.key === 's') {
+        // Launch confetti from various points
+        confetti({
+            particleCount: 250, // More particles
+            spread: 120, // Wider spread
+            origin: { y: 0.6, x: 0 } // Starting from the left
+        });
+        confetti({
+            particleCount: 250,
+            spread: 120,
+            origin: { y: 0.6, x: 1 } // Starting from the right
+        });
+
+        // Optionally, add more bursts with slight delays
+        setTimeout(function () {
+            confetti({
+                particleCount: 250,
+                spread: 100,
+                origin: { y: 0.4, x: 0.3 }
+            });
+        }, 250);
+
+        setTimeout(function () {
+            confetti({
+                particleCount: 250,
+                spread: 100,
+                origin: { y: 0.4, x: 0.7 }
+            });
+        }, 500);
+    }
+    else if (event.key === 'f') {
+        confetti({
+            particleCount: 300, // Less density
+            angle: 60,
+            spread: 155,
+            origin: { y: 0.6 },
+            colors: ['#4a4e69', '#9a8c98', '#c9ada7', '#f2e9e4'], // Somber colors
+            gravity: 0.5, // Slower fall
+            scalar: 0.8 // Smaller particles
+        });
+    }
 });
