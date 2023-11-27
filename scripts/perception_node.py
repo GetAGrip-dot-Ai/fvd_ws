@@ -327,8 +327,9 @@ class PerceptionNode:
             return None, None, None
         
         z = max(min(self.get_depth(depth_img, x, y), fruit_depth + 0.03), fruit_depth)        # TODO tune this
-        z_next = max(min(self.get_depth(depth_img, x_next, y_next), z + 0.01), z - 0.01)    # TODO tune this
-
+        # z_next = max(min(self.get_depth(depth_img, x_next, y_next), z + 0.01), z - 0.01)    # TODO tune this
+        z_next = z
+        
         # RS axes
         X_rs, Y_rs, Z_rs = self.get_3D_coords(x, y, z)
         X_next_rs, Y_next_rs, Z_next_rs = self.get_3D_coords(x_next, y_next, z_next)
