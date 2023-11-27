@@ -173,9 +173,9 @@ class Manipulator:
         # self.arm.set_servo_angle(angle=self.joint_angles, is_radian=False, wait=True, speed=50)
 
         # current_pose = self.arm.get_position()[1]
-
+        self.toInitTraj()
         # self.moveToInit()
-        self.moveToBasket()
+        # self.moveToBasket()
         # self.arm.set_position(190, -40, 440, -90, 45, -90, wait=True, speed=30)
         # self.execute_traj(self.from_basket_points)
         print("done executing trajectory")

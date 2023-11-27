@@ -46,7 +46,7 @@ def extract_images_from_bag(bag_file, topic, output_folder):
 if __name__ == '__main__':
 
     # sys.argv[1]
-    folder_path = "/home/amiga/fvd_ws/src/peter/rosbag/"
+    folder_path = "/home/amiga/fvd_ws/src/peter/rosbags/"
     output_folder = "/home/amiga/fvd_ws/src/peter/rosbag_img/"
     topic = "/camera/color/image_raw"
 

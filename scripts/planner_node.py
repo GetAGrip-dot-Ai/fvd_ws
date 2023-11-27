@@ -33,7 +33,7 @@ class PlannerNode:
         self.state_sub = rospy.Subscriber('/state', Int16, self.state_callback, queue_size=1) # state message
         self.joystick_sub = rospy.Subscriber('/joy', Joy, self.joystick_callback, queue_size=1) # joystick message        
         self.poi_sub = rospy.Subscriber('/poi', Pose, self.poi_callback, queue_size=1) # poi pose
-        self.has_grip_sub = rospy.Subscriber('/has_grip', Bool, self.has_grip_callback, queue_size=1) # has grip
+        self.has_grip_sub = rospy.Subscriber('/ag_gripper/has_grip', Bool, self.has_grip_callback, queue_size=1) # has grip
 
         # publishers
         self.joy_pub = rospy.Publisher('/joy_relay', Joy, queue_size=1) # joystick commands pub
