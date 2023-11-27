@@ -4,4 +4,5 @@ __pycache__/
 .vscode/
 scripts/__pycache__/
 bag/
+weights/
 local/
