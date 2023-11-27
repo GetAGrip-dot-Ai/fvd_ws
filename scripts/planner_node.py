@@ -64,25 +64,25 @@ class PlannerNode:
 
     def send_to_ee(self, command):
         """Send commands to open, harvest, or close for end-effector"""
-        # if command == "open":
-        #     try:
-        #         rospy.wait_for_service('/gripper_service')
-        #         Pegasus_action = rospy.ServiceProxy('/gripper_service',Pegasus)
-        #         Pegasus_action(1)
-        #         # rospy.logwarn("fake end effector open")
-        #         # rospy.sleep(3)
-        #     except rospy.ServiceException as e:
-        #         rospy.Logwarn("Service call failed: %s"%e)
+        if command == "open":
+            try:
+                rospy.wait_for_service('/gripper_service')
+                Pegasus_action = rospy.ServiceProxy('/gripper_service',Pegasus)
+                Pegasus_action(1)
+                # rospy.logwarn("fake end effector open")
+                # rospy.sleep(3)
+            except rospy.ServiceException as e:
+                rospy.Logwarn("Service call failed: %s"%e)
 
-        # elif command == "harvest":
-        #     try:
-        #         rospy.wait_for_service('/gripper_service')
-        #         Pegasus_action = rospy.ServiceProxy('/gripper_service',Pegasus)
-        #         Pegasus_action(0)
-        #         # rospy.logwarn("fake end effector harvest")
-        #         # rospy.sleep(3)
-        #     except rospy.ServiceException as e:
-        #         rospy.Logwarn("Service call failed: %s"%e)
+        elif command == "harvest":
+            try:
+                rospy.wait_for_service('/gripper_service')
+                Pegasus_action = rospy.ServiceProxy('/gripper_service',Pegasus)
+                Pegasus_action(0)
+                # rospy.logwarn("fake end effector harvest")
+                # rospy.sleep(3)
+            except rospy.ServiceException as e:
+                rospy.Logwarn("Service call failed: %s"%e)
         return
         
 
@@ -191,31 +191,31 @@ class PlannerNode:
                 self.state_pub.publish(8)
                 self.publish_value = 8
                 self.poi = None
-                return
-
-            try:
-                rospy.sleep(.1)
-                xarm = Manipulator()
-                xarm.moveToBasket()
-                rospy.logwarn("Moved to basket")
-                rospy.sleep(8)
-                xarm.disconnect()
-                rospy.logwarn("Plan Execution: Move to Basket Complete")
-                self.send_to_ee("open")
-                rospy.sleep(2)
-                xarm = Manipulator()
-                xarm.moveFromBasket()
-                rospy.logwarn("Moved from basket")
-                rospy.sleep(1)
-                rospy.logwarn("Plan Execution: Move from Basket Complete")
-                xarm.disconnect()
-                rospy.sleep(.1)
-                self.publish_value = 8
-                self.poi = None
-            except:
-                rospy.logwarn("ERROR: UNABLE TO MOVE TO BASKET")
-                self.state_pub.publish(10)
-                self.publish_value = 10
+                # return
+            else:
+                try:
+                    rospy.sleep(.1)
+                    xarm = Manipulator()
+                    xarm.moveToBasket()
+                    rospy.logwarn("Moved to basket")
+                    rospy.sleep(8)
+                    xarm.disconnect()
+                    rospy.logwarn("Plan Execution: Move to Basket Complete")
+                    self.send_to_ee("open")
+                    rospy.sleep(2)
+                    xarm = Manipulator()
+                    xarm.moveFromBasket()
+                    rospy.logwarn("Moved from basket")
+                    rospy.sleep(1)
+                    rospy.logwarn("Plan Execution: Move from Basket Complete")
+                    xarm.disconnect()
+                    rospy.sleep(.1)
+                    self.publish_value = 8
+                    self.poi = None
+                except:
+                    rospy.logwarn("ERROR: UNABLE TO MOVE TO BASKET")
+                    self.state_pub.publish(10)
+                    self.publish_value = 10
 
         else:
             rospy.logwarn("ERROR: UNRECOGNIZED STATE IN PLANNER NODE")

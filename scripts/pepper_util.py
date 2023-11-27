@@ -1,3 +1,5 @@
+import rospy
+import rospy
 import numpy as np
 from PIL import Image, ImageDraw
 from scipy.integrate import quad
@@ -47,12 +49,13 @@ class Curve:
         self._params = params
 
 
-    def parabola(self, t, a, b, c):
-        return a * t ** 2 + b * t + c
+    def parabola(self, t, a, b):
+        return a * t + b
     
     
     def curve_length_derivative(self, t):
-        return (1 + (2*self._params[0]*t + self._params[1])**2)**0.5
+        a, b = self._params
+        return 0.5 * ((2*t*(a**2 + 1) + 2*a*b)/(np.sqrt(t**2 + (a*t + b)**2)))
     
 
     def curve_length(self, idx):
@@ -80,12 +83,12 @@ class Curve:
             return 0
 
         params1, _ = curve_fit(self.parabola, y, x)
-        a, b, c = params1
-        fit_curve_x = self.parabola(y, a, b, c)
+        a, b = params1
+        fit_curve_x = self.parabola(y, a, b)
         
         params2, _ = curve_fit(self.parabola, x, y)
-        a, b, c = params2
-        fit_curve_y = self.parabola(x, a, b, c)
+        a, b = params2
+        fit_curve_y = self.parabola(x, a, b)
 
         if np.linalg.norm(x - fit_curve_x) < np.linalg.norm(y - fit_curve_y):
             self._peduncle_direction = 'horizontal'
@@ -223,10 +226,10 @@ class PepperPeduncle:
     def orientation_base(self, orientation_base):
         self._orientation_base = orientation_base
 
-    def determine_poi(self, total_curve_length):
+    def determine_poi(self, percentage, total_curve_length):
         for idx in range(len(self._curve.curve_y)):
             curve_length = self._curve.curve_length(idx)
-            if abs(curve_length - self._percentage * total_curve_length) < 2:
+            if abs(curve_length - percentage * total_curve_length) < 2:
                 return idx
     
         return len(self._curve.curve_y)//2
@@ -240,12 +243,14 @@ class PepperPeduncle:
         
         total_curve_length = self._curve.full_curve_length()
 
-        idx = self.determine_poi(total_curve_length)
+        idx = self.determine_poi(self._percentage, total_curve_length)
         self._poi_px = (self._curve.curve_x[idx], self._curve.curve_y[idx])
 
         IDX = 8
-        next_idx = idx + IDX if idx + IDX < len(self._curve.curve_x) else len(self._curve.curve_x) - 1
+        # next_idx = idx + IDX if idx + IDX < len(self._curve.curve_x) else len(self._curve.curve_x) - 1
+        next_idx = self.determine_poi(0.9, total_curve_length)
         self._next_point_px = (self._curve.curve_x[next_idx], self._curve.curve_y[next_idx])
+        rospy.logwarn(f"POI: {self._poi_px}, Next Point: {self._next_point_px}, POI Index: {idx}, Next Point Index: {next_idx}")
 
         return self._poi_px, self._next_point_px
 

@@ -107,6 +107,11 @@ def get_pose_object( position, orientation):
         [orientation[0], orientation[1], orientation[2]])
     orientation = orientation/np.linalg.norm(orientation)
 
+    if orientation[0] == 0 and orientation[1] == 0 and orientation[2] == 0:
+        pose.orientation = Quaternion(
+            x=0, y=0, z=0, w=1)
+        return pose
+
     if orientation[0] == 0 and orientation[1] == 0 and orientation[2] == 1:
         cross_vector = np.array([0, 1, 0])
     else:

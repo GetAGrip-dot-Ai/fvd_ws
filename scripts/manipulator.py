@@ -75,6 +75,7 @@ class Manipulator:
 
     def toInitTraj(self):
         """move away from basket pose"""
+        self.cartesianMove(-0.15,0) # move back 15 cm
         self.execute_traj(self.to_init_points)
 
     def cartesianMove(self,dist,axis): 
@@ -112,7 +113,9 @@ class Manipulator:
 
             # calculate the roll angle
             theta = math.atan2(y_comp, z_comp)
+            rospy.logwarn("theta: {}".format(theta))
             self.orientation[1] += (math.pi - theta) * (180/math.pi)
+            rospy.logwarn("orientation: {}".format(self.orientation))
             self.arm.set_position(x * 1000 ,y * 1000 ,z * 1000 ,*self.orientation, wait=True, speed=self.traj_speed)
 
     def moveToPoi(self):
@@ -130,7 +133,7 @@ class Manipulator:
         if self.encore:
             self.cartesianMove(-0.05,0) # move back 5 cm
             self.orientParallel() # straighten orientation if needed
-            self.cartesianMove(-dx+5,0) # move back to retract depth
+            self.cartesianMove(-dx+0.05,0) # move back to retract depth
         else:
             self.cartesianMove(-dx,0) # move back to retract depth
 
