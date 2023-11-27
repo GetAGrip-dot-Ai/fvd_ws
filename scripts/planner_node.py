@@ -182,8 +182,15 @@ class PlannerNode:
 
             if not self.has_grip:
                 rospy.logwarn("No grip detected! Returning to initial position.")
+                rospy.sleep(.1)
+                xarm = Manipulator()
+                xarm.toInitTraj()
+                rospy.sleep(.1)
+                xarm.disconnect()
+                rospy.sleep(.1)
                 self.state_pub.publish(8)
                 self.publish_value = 8
+                self.poi = None
                 return
 
             try:

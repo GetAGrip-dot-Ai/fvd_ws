@@ -32,6 +32,7 @@ class Manipulator:
         self.retract_depth = None
         self.extra_depth = None
         self.mf_angle = None
+        self.to_init_points = None
         self.encore = rospy.get_param('/encore')
         self.ip = rospy.get_param('/xarm_robot_ip')
         arm_yaml = rospy.get_param('/arm_yaml')
@@ -64,12 +65,17 @@ class Manipulator:
         self.retract_depth = data["retract_depth"]
         self.extra_depth = data["extra_depth"]
         self.mf_angle = data["mf_angle"]
+        self.to_init_points = data["to_init_points"]
 
     def moveToInit(self):
         """move to initial position"""
         print("Moving to initial pose")
         # self.arm.set_position(*self.init_pose, wait=True, speed=self.traj_speed)
         self.arm.set_servo_angle(angle=self.init_pose_joints, is_radian=False, wait=True, speed=self.traj_speed)
+
+    def toInitTraj(self):
+        """move away from basket pose"""
+        self.execute_traj(self.to_init_points)
 
     def cartesianMove(self,dist,axis): 
         """cartesian move along y"""
