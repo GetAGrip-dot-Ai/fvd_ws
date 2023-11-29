@@ -266,6 +266,10 @@ class PerceptionNode:
             if peduncle.xyz_rs is None or peduncle.xyz_base is None:
                 delete_keys.append(i)
                 continue
+
+            if peduncle.orientation_base[0] == 0 and peduncle.orientation_base[1] == 0 and peduncle.orientation_base[2] == 0:
+                delete_keys.append(i)
+                continue
             
             self.fruit_marker_rs.points.append(Point(fruit.xyz_rs[0], fruit.xyz_rs[1], fruit.xyz_rs[2]))
             self.fruit_marker_base.points.append(Point(fruit.xyz_base[0], fruit.xyz_base[1], fruit.xyz_base[2]))

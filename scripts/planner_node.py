@@ -181,6 +181,7 @@ class PlannerNode:
         elif self.state == 8:
 
             if not self.has_grip:
+            # if False:
                 rospy.logwarn("No grip detected! Returning to initial position.")
                 rospy.sleep(.1)
                 xarm = Manipulator()

@@ -81,8 +81,13 @@ class PepperFilterNode:
                 continue
             
             # if abs(new_cluster.center[1]) > PLANT_RADIUS:
+            # if pepper to too far right or left of plant reject it
             if new_cluster.center[1] > 60 or new_cluster.center[1] <-20 :
                 continue
+
+            # # if pepper is too close to the arm reject it
+            # if new_cluster.center[0] < 0.2:
+            #     continue
             
             if self.clusters:
                 

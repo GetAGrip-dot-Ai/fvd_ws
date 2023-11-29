@@ -33,6 +33,7 @@ class Manipulator:
         self.extra_depth = None
         self.mf_angle = None
         self.to_init_points = None
+        self.mf_speed = None
         self.encore = rospy.get_param('/encore')
         self.ip = rospy.get_param('/xarm_robot_ip')
         arm_yaml = rospy.get_param('/arm_yaml')
@@ -66,6 +67,7 @@ class Manipulator:
         self.extra_depth = data["extra_depth"]
         self.mf_angle = data["mf_angle"]
         self.to_init_points = data["to_init_points"]
+        self.mf_speed = data["mf_speed"]
 
     def moveToInit(self):
         """move to initial position"""
@@ -75,16 +77,16 @@ class Manipulator:
 
     def toInitTraj(self):
         """move away from basket pose"""
-        self.cartesianMove(-0.15,0) # move back 15 cm
+        self.cartesianMove(-0.15,0,self.cartesian_speed) # move back 15 cm
         self.execute_traj(self.to_init_points)
 
-    def cartesianMove(self,dist,axis): 
+    def cartesianMove(self,dist,axis,speed): 
         """cartesian move along y"""
         dist = dist*1000  # convert m to mm
         current_pos = self.arm.get_position()[1]
         current_pos[axis] += dist # add dist to specified axis
         print("Executing cartesian move")
-        self.arm.set_position(*current_pos, wait=True, speed=self.cartesian_speed)
+        self.arm.set_position(*current_pos, wait=True, speed=speed)
 
     def moveToPregrasp(self,poi_pose):
         """move to pregrasp pose"""
@@ -119,7 +121,7 @@ class Manipulator:
             self.arm.set_position(x * 1000 ,y * 1000 ,z * 1000 ,*self.orientation, wait=True, speed=self.traj_speed)
 
     def moveToPoi(self):
-        self.cartesianMove(self.pregrasp_offset+self.extra_depth,0) # move forward in x
+        self.cartesianMove(self.pregrasp_offset+self.extra_depth,0,self.cartesian_speed) # move forward in x
 
     def orientParallel(self):
         current_pos = self.arm.get_position()[1]
@@ -131,11 +133,11 @@ class Manipulator:
         current_pos = self.arm.get_position()[1]
         dx = (current_pos[0] - self.retract_depth)/1000
         if self.encore:
-            self.cartesianMove(-0.05,0) # move back 5 cm
+            self.cartesianMove(-0.05,0,self.cartesian_speed) # move back 5 cm
             self.orientParallel() # straighten orientation if needed
-            self.cartesianMove(-dx+0.05,0) # move back to retract depth
+            self.cartesianMove(-dx+0.05,0,self.cartesian_speed) # move back to retract depth
         else:
-            self.cartesianMove(-dx,0) # move back to retract depth
+            self.cartesianMove(-dx,0,self.cartesian_speed) # move back to retract depth
 
         # set correct joint angles so there are no errors
         self.arm.set_servo_angle(angle=self.joint_angles, is_radian=False, wait=True, speed=self.cartesian_speed)
@@ -155,9 +157,10 @@ class Manipulator:
         """scan down the pepper plant"""
         print("Multiframe: scanning the plant")
         current_pos = self.arm.get_position()[1]
-        self.cartesianMove(-0.2,2) # move up 20 cm in z
+        self.cartesianMove(-0.2,2,self.mf_speed) # move up 20 cm in z
         self.arm.set_servo_angle(servo_id=5, angle=self.mf_angle, is_radian=False, wait=True, speed=10)
-        self.cartesianMove(0.2,2) # move down 20 cm in z
+        rospy.sleep(1)
+        self.cartesianMove(0.2,2,self.mf_speed) # move down 20 cm in z
         self.arm.set_servo_angle(servo_id=5, angle=self.init_pose_joints[4], is_radian=False, wait=True, speed=10)
 
     def execute_traj(self, points):
