@@ -24,7 +24,6 @@ move to pregrasp: 5
 move to poi: 6
 harvest: 7
 move to basket: 8
-release & reset: 9
 ERROR: 10
 
 """

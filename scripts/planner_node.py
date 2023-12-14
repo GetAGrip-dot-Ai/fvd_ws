@@ -180,7 +180,7 @@ class PlannerNode:
         # move to basket and drop then go back to init
         elif self.state == 8:
 
-            if not self.has_grip:
+            # if not self.has_grip:
             # if False:
                 rospy.logwarn("No grip detected! Returning to initial position.")
                 rospy.sleep(.1)
@@ -193,30 +193,30 @@ class PlannerNode:
                 self.publish_value = 8
                 self.poi = None
                 # return
-            else:
-                try:
-                    rospy.sleep(.1)
-                    xarm = Manipulator()
-                    xarm.moveToBasket()
-                    rospy.logwarn("Moved to basket")
-                    rospy.sleep(8)
-                    xarm.disconnect()
-                    rospy.logwarn("Plan Execution: Move to Basket Complete")
-                    self.send_to_ee("open")
-                    rospy.sleep(2)
-                    xarm = Manipulator()
-                    xarm.moveFromBasket()
-                    rospy.logwarn("Moved from basket")
-                    rospy.sleep(1)
-                    rospy.logwarn("Plan Execution: Move from Basket Complete")
-                    xarm.disconnect()
-                    rospy.sleep(.1)
-                    self.publish_value = 8
-                    self.poi = None
-                except:
-                    rospy.logwarn("ERROR: UNABLE TO MOVE TO BASKET")
-                    self.state_pub.publish(10)
-                    self.publish_value = 10
+            # else:
+                # try:
+                #     rospy.sleep(.1)
+                #     xarm = Manipulator()
+                #     xarm.moveToBasket()
+                #     rospy.logwarn("Moved to basket")
+                #     rospy.sleep(8)
+                #     xarm.disconnect()
+                #     rospy.logwarn("Plan Execution: Move to Basket Complete")
+                #     self.send_to_ee("open")
+                #     rospy.sleep(2)
+                #     xarm = Manipulator()
+                #     xarm.moveFromBasket()
+                #     rospy.logwarn("Moved from basket")
+                #     rospy.sleep(1)
+                #     rospy.logwarn("Plan Execution: Move from Basket Complete")
+                #     xarm.disconnect()
+                #     rospy.sleep(.1)
+                #     self.publish_value = 8
+                #     self.poi = None
+                # except:
+                #     rospy.logwarn("ERROR: UNABLE TO MOVE TO BASKET")
+                #     self.state_pub.publish(10)
+                #     self.publish_value = 10
 
         else:
             rospy.logwarn("ERROR: UNRECOGNIZED STATE IN PLANNER NODE")

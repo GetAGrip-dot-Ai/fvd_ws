@@ -152,13 +152,15 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('system_state_update', function (data) {
         updateStateMachine(9, data.state, 'system');
         // Example: Start or stop the timer based on the state
-        if (data.state === 3 && prev_state != 3) { // Assuming state 3 is when harvesting starts
-            startTimer();
-        } else if (data.state === 8 && prev_state != 8) { // Assuming state 8 is when harvesting ends
+        if (data.state === 3 && prev_state == 8 ) { // Assuming state 3 is when harvesting starts
             recordHarvestTime();
+            startTimer();
+        } else if (data.state === 3 && prev_state == 0 ) { // Assuming state 8 is when harvesting ends
+            startTimer();
         }
         else if (data.state === 0 && prev_state == 4) { // Assuming state 8 is when harvesting ends
             stopTimer();
+            totalSeconds = 0;
         }
         prev_state = data.state;
 
